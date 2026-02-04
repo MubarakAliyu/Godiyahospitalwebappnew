@@ -217,7 +217,7 @@ export function FinancePage() {
     } else if (status === 'Partial') {
       return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">Partial</Badge>;
     } else {
-      return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">Unpaid</Badge>;
+      return <Badge className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border border-yellow-200">Unpaid</Badge>;
     }
   };
 

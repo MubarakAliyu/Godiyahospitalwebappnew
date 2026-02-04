@@ -68,12 +68,17 @@ export interface Invoice {
 
 export interface Notification {
   id: string;
-  type: 'clinical' | 'billing' | 'admin';
+  type: 'info' | 'success' | 'warning' | 'critical';
+  category: 'clinical' | 'billing' | 'admin'; // For tab filtering
   icon: string;
   title: string;
   description: string;
+  message?: string; // Full message
+  module: 'Patients' | 'Appointments' | 'Billing' | 'Laboratory' | 'Pharmacy' | 'Staff' | 'Departments' | 'System' | 'Security' | 'Beds';
   timestamp: string;
   unread: boolean;
+  actionLink?: string; // Optional action link
+  actionLabel?: string; // Label for action button
 }
 
 export interface ActivityLog {

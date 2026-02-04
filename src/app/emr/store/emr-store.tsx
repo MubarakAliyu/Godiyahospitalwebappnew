@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Patient, Appointment, Invoice, Notification, ActivityLog, Doctor, Staff, Department, StaffAttendance, AttendanceStatus, BedCategory, HospitalSettings } from './types';
 import { seedPatients, seedAppointments, seedInvoices, seedDoctors, seedStaff, seedDepartments, seedBedCategories } from './seed-data';
+import { seedNotifications } from './seed-notifications';
 
 interface EMRStoreContextType {
   // Data
@@ -32,6 +33,7 @@ interface EMRStoreContextType {
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'unread'>) => void;
   markNotificationAsRead: (id: string) => void;
   clearAllNotifications: () => void;
+  deleteNotification: (id: string) => void;
   
   addActivityLog: (log: Omit<ActivityLog, 'id' | 'timestamp'>) => void;
   
@@ -87,7 +89,7 @@ export function EMRStoreProvider({ children }: { children: ReactNode }) {
       return [];
     }
   });
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>(seedNotifications);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const doctors = seedDoctors;
   const [staff, setStaff] = useState<Staff[]>(() => {
@@ -433,6 +435,10 @@ export function EMRStoreProvider({ children }: { children: ReactNode }) {
     setNotifications([]);
   };
 
+  const deleteNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
   // Activity Log Actions
   const addActivityLog = (logData: Omit<ActivityLog, 'id' | 'timestamp'>) => {
     const newLog: ActivityLog = {
@@ -751,6 +757,7 @@ export function EMRStoreProvider({ children }: { children: ReactNode }) {
         addNotification,
         markNotificationAsRead,
         clearAllNotifications,
+        deleteNotification,
         addActivityLog,
         addStaff,
         updateStaff,

@@ -60,14 +60,14 @@ export function EMRHeader({ breadcrumbs }: EMRHeaderProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white border-b border-border h-16 flex items-center px-6 gap-4">
-        {/* Breadcrumbs - Always horizontal, no wrapping */}
-        <div className="flex-shrink-0 overflow-x-auto scrollbar-hide">
+      <header className="sticky top-0 z-40 bg-white border-b border-border h-16 flex items-center px-4 md:px-6 gap-3 md:gap-6">
+        {/* Breadcrumbs - Takes available space but doesn't grow too much */}
+        <div className="flex-shrink-0 min-w-0 max-w-xl overflow-x-auto scrollbar-hide">
           <Breadcrumb>
             <BreadcrumbList className="flex-nowrap whitespace-nowrap">
               {breadcrumbs.map((crumb, index) => (
                 <div key={index} className="flex items-center flex-shrink-0">
-                  {index > 0 && <BreadcrumbSeparator className="flex-shrink-0" />}
+                  {index > 0 && <BreadcrumbSeparator className="flex-shrink-0 mx-2" />}
                   <BreadcrumbItem className="flex-shrink-0">
                     {index === breadcrumbs.length - 1 ? (
                       <BreadcrumbPage className="font-medium whitespace-nowrap">
@@ -88,67 +88,73 @@ export function EMRHeader({ breadcrumbs }: EMRHeaderProps) {
           </Breadcrumb>
         </div>
 
-        {/* Global Search */}
-        <div className="hidden md:flex items-center flex-1 max-w-md">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search patients, invoices, rooms, drugs…"
-              className="pl-9 h-10 bg-muted/50 border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-        </div>
+        {/* Spacer - Pushes right content to the end */}
+        <div className="flex-1 hidden md:block" />
 
-        {/* Notifications */}
-        <button
-          onClick={() => setIsNotificationsOpen(true)}
-          className="relative p-2 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
-        >
-          <Bell className="w-5 h-5 text-foreground" />
-          {unreadCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-destructive text-white text-xs">
-              {unreadCount}
-            </Badge>
-          )}
-        </button>
-
-        {/* Profile Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 hover:bg-muted px-2 py-1.5 rounded-lg transition-colors flex-shrink-0">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-white text-sm">
-                  {authData.name?.charAt(0) || 'A'}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden lg:block text-sm font-medium">
-                {authData.name || 'Aliyu'}
-              </span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <div className="px-2 py-1.5">
-              <p className="text-sm font-medium">{authData.name || 'Aliyu'}</p>
-              <p className="text-xs text-muted-foreground">{authData.email || 'ghaliyu@gmail.com'}</p>
-              <Badge className="mt-1 text-xs" variant="secondary">
-                {authData.role || 'Super Admin'}
-              </Badge>
+        {/* Right Side Group - Search + Notifications + Profile */}
+        <div className="flex items-center gap-3 md:gap-4 ml-auto">
+          {/* Global Search */}
+          <div className="hidden md:flex items-center">
+            <div className="relative w-64 lg:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search patients, invoices, rooms, drugs…"
+                className="pl-9 h-10 bg-muted/50 border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
             </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate(getSettingsPath())}>
-              <SettingsIcon className="w-4 h-4 mr-2" />
-              Account Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => setIsLogoutModalOpen(true)}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </div>
+
+          {/* Notifications */}
+          <button
+            onClick={() => setIsNotificationsOpen(true)}
+            className="relative p-2 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
+          >
+            <Bell className="w-5 h-5 text-foreground" />
+            {unreadCount > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-destructive text-white text-xs">
+                {unreadCount}
+              </Badge>
+            )}
+          </button>
+
+          {/* Profile Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 md:gap-3 hover:bg-muted px-2 py-1.5 rounded-lg transition-colors flex-shrink-0">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-white text-sm">
+                    {authData.name?.charAt(0) || 'A'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="hidden lg:block text-sm font-medium">
+                  {authData.name || 'Aliyu'}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{authData.name || 'Aliyu'}</p>
+                <p className="text-xs text-muted-foreground">{authData.email || 'ghaliyu@gmail.com'}</p>
+                <Badge className="mt-1 text-xs" variant="secondary">
+                  {authData.role || 'Super Admin'}
+                </Badge>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate(getSettingsPath())}>
+                <SettingsIcon className="w-4 h-4 mr-2" />
+                Account Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setIsLogoutModalOpen(true)}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       {/* Notifications Drawer */}

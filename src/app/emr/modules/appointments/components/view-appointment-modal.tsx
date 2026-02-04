@@ -47,7 +47,7 @@ export function ViewAppointmentModal({ isOpen, onClose, appointment }: ViewAppoi
   const getPaymentBadge = (status: string) => {
     const isPaid = status === 'Completed';
     return (
-      <Badge className={isPaid ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-gray-100 text-gray-700 hover:bg-gray-100'}>
+      <Badge className={isPaid ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border border-yellow-200'}>
         {isPaid ? 'Paid' : 'Unpaid'}
       </Badge>
     );

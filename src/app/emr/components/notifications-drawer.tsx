@@ -44,7 +44,7 @@ export function NotificationsDrawer({ isOpen, onClose }: NotificationsDrawerProp
 
   const filteredNotifications = activeTab === 'all'
     ? notifications
-    : notifications.filter(n => n.type === activeTab);
+    : notifications.filter(n => n.category === activeTab);
 
   return (
     <AnimatePresence>
@@ -143,8 +143,8 @@ export function NotificationsDrawer({ isOpen, onClose }: NotificationsDrawerProp
                           >
                             <div className="flex items-start gap-3">
                               <div className={`p-2 rounded-lg ${
-                                notification.type === 'billing' ? 'bg-green-100 text-green-600' :
-                                notification.type === 'clinical' ? 'bg-red-100 text-red-600' :
+                                notification.category === 'billing' ? 'bg-green-100 text-green-600' :
+                                notification.category === 'clinical' ? 'bg-red-100 text-red-600' :
                                 'bg-blue-100 text-blue-600'
                               }`}>
                                 <Icon className="w-4 h-4" />

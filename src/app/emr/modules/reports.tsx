@@ -468,7 +468,7 @@ export function ReportsPage() {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="Paid">Paid</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Unpaid">Unpaid</SelectItem>
                 <SelectItem value="Partial">Partial</SelectItem>
               </SelectContent>
             </Select>
@@ -1005,9 +1005,9 @@ function FinancialReportTable({ records, onView }: { records: any[]; onView: (re
                     className={
                       record.paymentStatus === 'Paid'
                         ? 'bg-green-100 text-green-700 hover:bg-green-100'
-                        : record.paymentStatus === 'Pending'
-                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
-                        : 'bg-blue-100 text-blue-700 hover:bg-blue-100'
+                        : record.paymentStatus === 'Unpaid'
+                        ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border border-yellow-200'
+                        : 'bg-orange-100 text-orange-700 hover:bg-orange-100'
                     }
                   >
                     {record.paymentStatus}
@@ -1201,7 +1201,7 @@ function AppointmentReportTable({ appointments, onView }: { appointments: any[];
                     className={
                       apt.status === 'Completed'
                         ? 'bg-purple-100 text-purple-700 hover:bg-purple-100'
-                        : apt.status === 'Pending'
+                        : apt.status === 'Scheduled'
                         ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
                         : 'bg-red-100 text-red-700 hover:bg-red-100'
                     }
@@ -1494,9 +1494,9 @@ function ViewRecordModal({ open, onClose, record, type }: any) {
                       className={
                         record.paymentStatus === 'Paid'
                           ? 'bg-green-100 text-green-700'
-                          : record.paymentStatus === 'Pending'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-blue-100 text-blue-700'
+                          : record.paymentStatus === 'Unpaid'
+                          ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                          : 'bg-orange-100 text-orange-700'
                       }
                     >
                       {record.paymentStatus}
@@ -1580,7 +1580,7 @@ function ViewRecordModal({ open, onClose, record, type }: any) {
                       className={
                         record.status === 'Completed'
                           ? 'bg-purple-100 text-purple-700'
-                          : record.status === 'Pending'
+                          : record.status === 'Scheduled'
                           ? 'bg-yellow-100 text-yellow-700'
                           : 'bg-red-100 text-red-700'
                       }

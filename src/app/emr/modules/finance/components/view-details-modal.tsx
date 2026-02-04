@@ -134,7 +134,7 @@ export function ViewDetailsModal({ invoice, patient, isOpen, onClose }: ViewDeta
                           ? 'bg-green-100 text-green-700 hover:bg-green-100'
                           : invoice.paymentStatus === 'Partial'
                           ? 'bg-orange-100 text-orange-700 hover:bg-orange-100'
-                          : 'bg-orange-100 text-orange-700 hover:bg-orange-100'
+                          : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border border-yellow-200'
                       }
                     >
                       {invoice.paymentStatus}

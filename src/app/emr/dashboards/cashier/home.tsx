@@ -59,7 +59,7 @@ function KPICard({
 export function CashierDashboardHome() {
   const recentTransactions = [
     { id: 'INV-001', patient: 'Fatima Ahmed', amount: '₦15,000', type: 'Consultation', status: 'Completed', time: '09:15 AM' },
-    { id: 'INV-002', patient: 'Musa Usman', amount: '₦8,500', type: 'Laboratory', status: 'Pending', time: '10:30 AM' },
+    { id: 'INV-002', patient: 'Musa Usman', amount: '₦8,500', type: 'Laboratory', status: 'Unpaid', time: '10:30 AM' },
     { id: 'INV-003', patient: 'Hauwa Bello', amount: '₦12,000', type: 'Pharmacy', status: 'Completed', time: '11:00 AM' },
     { id: 'INV-004', patient: 'Ibrahim Sani', amount: '₦25,000', type: 'Admission', status: 'Completed', time: '01:45 PM' },
   ];

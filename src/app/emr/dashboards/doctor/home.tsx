@@ -25,10 +25,10 @@ function KPICard({ title, value, icon: Icon, color = 'primary' }: any) {
 
 export function DoctorDashboardHome() {
   const todayAppointments = [
-    { id: 1, patient: 'Fatima Ahmed', time: '09:00 AM', type: 'Consultation', status: 'Pending' },
+    { id: 1, patient: 'Fatima Ahmed', time: '09:00 AM', type: 'Consultation', status: 'Scheduled' },
     { id: 2, patient: 'Musa Usman', time: '10:30 AM', type: 'Follow-up', status: 'Completed' },
     { id: 3, patient: 'Hauwa Bello', time: '11:15 AM', type: 'Consultation', status: 'In Progress' },
-    { id: 4, patient: 'Ibrahim Sani', time: '02:00 PM', type: 'Check-up', status: 'Pending' },
+    { id: 4, patient: 'Ibrahim Sani', time: '02:00 PM', type: 'Check-up', status: 'Scheduled' },
   ];
 
   return (

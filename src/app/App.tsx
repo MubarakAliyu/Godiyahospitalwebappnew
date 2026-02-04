@@ -22,6 +22,9 @@ import { PatientRedirect } from '@/app/emr/components/patient-redirect';
 import { RoleDashboardLayout } from '@/app/emr/layouts/role-dashboard-layout';
 import { ReceptionDashboardHome } from '@/app/emr/dashboards/reception/home';
 import { ReceptionSettings } from '@/app/emr/dashboards/reception/settings';
+import { ReceptionAllPatientsPage } from '@/app/emr/dashboards/reception/all-patients';
+import { ReceptionIPDPatientsPage } from '@/app/emr/dashboards/reception/ipd-patients';
+import { ReceptionOPDPatientsPage } from '@/app/emr/dashboards/reception/opd-patients';
 import { CashierDashboardHome } from '@/app/emr/dashboards/cashier/home';
 import { CashierSettings } from '@/app/emr/dashboards/cashier/settings';
 import { DoctorDashboardHome } from '@/app/emr/dashboards/doctor/home';
@@ -190,9 +193,10 @@ function App() {
           }>
             <Route path="dashboard" element={<ReceptionDashboardHome />} />
             <Route path="settings" element={<ReceptionSettings />} />
-            <Route path="patients" element={<ComingSoon icon={Users} title="All Patients" />} />
-            <Route path="patients/ipd" element={<ComingSoon icon={Bed} title="IPD Patients" />} />
-            <Route path="patients/opd" element={<ComingSoon icon={Stethoscope} title="OPD Patients" />} />
+            <Route path="patients" element={<ReceptionAllPatientsPage />} />
+            <Route path="patients/:fileNo" element={<PatientFilePage />} />
+            <Route path="patients/ipd" element={<ReceptionIPDPatientsPage />} />
+            <Route path="patients/opd" element={<ReceptionOPDPatientsPage />} />
             <Route path="appointments" element={<AppointmentsPage />} />
           </Route>
 
