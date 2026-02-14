@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { useEMRStore } from '@/app/emr/store/emr-store';
 import { Card, CardContent } from '@/app/components/ui/card';

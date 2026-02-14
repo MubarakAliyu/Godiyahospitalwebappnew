@@ -25,7 +25,7 @@ import {
 } from '@/app/components/ui/dropdown-menu';
 import { useEMRStore } from '../store/emr-store';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { EditPatientModal } from './components/edit-patient-modal';
 import { DeleteFileModal, RecordAsDeadModal, ViewSubfilesModal } from '../components/patient-action-modals';

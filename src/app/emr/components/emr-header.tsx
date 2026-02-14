@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Search, Plus, Bell, User, LogOut, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -23,6 +23,9 @@ import {
 import { toast } from 'sonner';
 import { LogoutConfirmModal } from './logout-confirm-modal';
 import { NotificationsDrawer } from './notifications-drawer';
+import { CashierProfileDropdown } from './cashier-profile-dropdown';
+import { ProfileDropdown } from './profile-dropdown';
+import { ChangePasswordModal } from './change-password-modal';
 import { useEMRStore } from '../store/emr-store';
 
 interface EMRHeaderProps {
@@ -34,126 +37,86 @@ export function EMRHeader({ breadcrumbs }: EMRHeaderProps) {
   const { notifications } = useEMRStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const authData = JSON.parse(localStorage.getItem('emr_auth') || '{}');
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const getSettingsPath = () => {
+    const role = authData.role || 'User';
+    
+    // Map roles to their correct settings paths
+    switch (role) {
+      case 'Doctor':
+        return '/emr/doctor/settings';
+      case 'Nurse':
+        return '/emr/nurse/settings';
+      case 'Reception':
+        return '/emr/reception/settings';
+      case 'Cashier':
+        return '/emr/cashier/settings';
+      case 'Laboratory':
+        return '/emr/laboratory-staff/settings';
+      case 'Pharmacy':
+        return '/emr/pharmacy-staff/settings';
+      default:
+        return '/emr/dashboard/settings'; // Super Admin
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('emr_auth');
-    toast.success('Logged out successfully.');
-    navigate('/emr/login');
-  };
-
-  const getSettingsPath = () => {
-    const role = authData.role || 'Super Admin';
-    const pathMap: Record<string, string> = {
-      'Super Admin': '/emr/dashboard/settings',
-      'Reception': '/emr/reception/settings',
-      'Cashier': '/emr/cashier/settings',
-      'Doctor': '/emr/doctor/settings',
-      'Laboratory': '/emr/laboratory/settings',
-      'Pharmacy': '/emr/pharmacy/settings',
-      'Nurse': '/emr/nurse/settings',
-    };
-    return pathMap[role] || '/emr/dashboard/settings';
+    navigate('/login');
+    toast.success('Logged out successfully');
   };
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white border-b border-border h-16 flex items-center px-4 md:px-6 gap-3 md:gap-6">
-        {/* Breadcrumbs - Takes available space but doesn't grow too much */}
-        <div className="flex-shrink-0 min-w-0 max-w-xl overflow-x-auto scrollbar-hide">
-          <Breadcrumb>
-            <BreadcrumbList className="flex-nowrap whitespace-nowrap">
-              {breadcrumbs.map((crumb, index) => (
-                <div key={index} className="flex items-center flex-shrink-0">
-                  {index > 0 && <BreadcrumbSeparator className="flex-shrink-0 mx-2" />}
-                  <BreadcrumbItem className="flex-shrink-0">
-                    {index === breadcrumbs.length - 1 ? (
-                      <BreadcrumbPage className="font-medium whitespace-nowrap">
-                        {crumb.label}
-                      </BreadcrumbPage>
-                    ) : (
-                      <BreadcrumbLink
-                        href={crumb.path || '#'}
-                        className="text-muted-foreground hover:text-foreground whitespace-nowrap"
-                      >
-                        {crumb.label}
-                      </BreadcrumbLink>
-                    )}
-                  </BreadcrumbItem>
-                </div>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
+      <header className="flex items-center justify-between px-4 py-2 bg-gray-100">
+        <div className="flex items-center">
+          <BreadcrumbList>
+            {breadcrumbs.map((breadcrumb, index) => (
+              <BreadcrumbItem key={index}>
+                {breadcrumb.path ? (
+                  <BreadcrumbLink href={breadcrumb.path}>{breadcrumb.label}</BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+            ))}
+          </BreadcrumbList>
         </div>
-
-        {/* Spacer - Pushes right content to the end */}
-        <div className="flex-1 hidden md:block" />
-
-        {/* Right Side Group - Search + Notifications + Profile */}
-        <div className="flex items-center gap-3 md:gap-4 ml-auto">
-          {/* Global Search */}
-          <div className="hidden md:flex items-center">
-            <div className="relative w-64 lg:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search patients, invoices, rooms, drugs…"
-                className="pl-9 h-10 bg-muted/50 border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-          </div>
-
-          {/* Notifications */}
-          <button
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            className="relative"
             onClick={() => setIsNotificationsOpen(true)}
-            className="relative p-2 hover:bg-muted rounded-lg transition-colors flex-shrink-0"
           >
-            <Bell className="w-5 h-5 text-foreground" />
-            {unreadCount > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-destructive text-white text-xs">
-                {unreadCount}
+            <Bell className="h-5 w-5" />
+            {notifications.length > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-2 -right-2 px-2 py-1 text-xs"
+              >
+                {notifications.length}
               </Badge>
             )}
-          </button>
-
+          </Button>
           {/* Profile Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 md:gap-3 hover:bg-muted px-2 py-1.5 rounded-lg transition-colors flex-shrink-0">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary text-white text-sm">
-                    {authData.name?.charAt(0) || 'A'}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden lg:block text-sm font-medium">
-                  {authData.name || 'Aliyu'}
-                </span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium">{authData.name || 'Aliyu'}</p>
-                <p className="text-xs text-muted-foreground">{authData.email || 'ghaliyu@gmail.com'}</p>
-                <Badge className="mt-1 text-xs" variant="secondary">
-                  {authData.role || 'Super Admin'}
-                </Badge>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate(getSettingsPath())}>
-                <SettingsIcon className="w-4 h-4 mr-2" />
-                Account Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setIsLogoutModalOpen(true)}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {authData.role === 'Cashier' ? (
+            <CashierProfileDropdown
+              authData={authData}
+              getSettingsPath={getSettingsPath}
+              handleLogout={handleLogout}
+              setIsLogoutModalOpen={setIsLogoutModalOpen}
+            />
+          ) : (
+            <ProfileDropdown
+              authData={authData}
+              getSettingsPath={getSettingsPath}
+              handleLogout={handleLogout}
+              setIsLogoutModalOpen={setIsLogoutModalOpen}
+              setIsChangePasswordModalOpen={setIsChangePasswordModalOpen}
+            />
+          )}
         </div>
       </header>
 
@@ -168,6 +131,12 @@ export function EMRHeader({ breadcrumbs }: EMRHeaderProps) {
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
+      />
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setIsChangePasswordModalOpen(false)}
       />
     </>
   );

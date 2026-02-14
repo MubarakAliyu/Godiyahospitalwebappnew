@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Patient, Appointment, Invoice, Notification, ActivityLog, Doctor, Staff, Department, StaffAttendance, AttendanceStatus, BedCategory, HospitalSettings } from './types';
+import { Patient, Appointment, Invoice, Notification, ActivityLog, Doctor, Staff, Department, StaffAttendance, AttendanceStatus, BedCategory, HospitalSettings, AttendanceSession } from './types';
 import { seedPatients, seedAppointments, seedInvoices, seedDoctors, seedStaff, seedDepartments, seedBedCategories } from './seed-data';
 import { seedNotifications } from './seed-notifications';
 
@@ -16,6 +16,7 @@ interface EMRStoreContextType {
   staffAttendance: StaffAttendance[];
   bedCategories: BedCategory[];
   settings: HospitalSettings;
+  cashierPIN: string | null;
 
   // Actions
   addPatient: (patient: Omit<Patient, 'id' | 'fullName' | 'age' | 'dateRegistered'>) => Patient;
@@ -51,6 +52,9 @@ interface EMRStoreContextType {
   addStaffAttendance: (attendance: Omit<StaffAttendance, 'id'>) => StaffAttendance;
   updateStaffAttendance: (id: string, updates: Partial<StaffAttendance>) => void;
   deleteStaffAttendance: (id: string) => void;
+  recordStaffLogin: (staffId: string) => void; // New: Record staff login with session tracking
+  recordStaffLogout: (staffId: string) => void; // New: Record staff logout with session tracking
+  getTodayAttendance: () => StaffAttendance[]; // New: Get today's attendance
 
   // Bed Management Actions
   addBedCategory: (bedCategory: Omit<BedCategory, 'id' | 'dateCreated' | 'lastUpdated' | 'availableBeds'>) => BedCategory;
@@ -59,6 +63,9 @@ interface EMRStoreContextType {
 
   // Settings Actions
   updateSettings: (settings: Partial<HospitalSettings>) => void;
+  
+  // Cashier PIN Actions
+  setCashierPIN: (pin: string) => void;
 }
 
 const EMRStoreContext = createContext<EMRStoreContextType | undefined>(undefined);
@@ -124,6 +131,7 @@ export function EMRStoreProvider({ children }: { children: ReactNode }) {
     hospitalEmail: 'info@hospital.com',
     hospitalLogo: 'https://via.placeholder.com/150',
   });
+  const [cashierPIN, setCashierPINState] = useState<string | null>(null);
 
   // Counters for ID generation to prevent duplicates
   let notificationCounter = 0;
@@ -654,6 +662,144 @@ export function EMRStoreProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // New: Record staff login with session tracking
+  const recordStaffLogin = (staffId: string) => {
+    const staffMember = staff.find(s => s.id === staffId);
+    if (!staffMember) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const loginTime = now.toISOString();
+    
+    // Find if there's already an attendance record for today
+    const todayAttendance = staffAttendance.find(
+      a => a.staffId === staffId && a.date.startsWith(today)
+    );
+
+    if (todayAttendance) {
+      // Add new session to existing attendance (no notification for additional sessions)
+      const newSession: AttendanceSession = {
+        loginTime,
+        logoutTime: undefined,
+        duration: undefined,
+      };
+
+      const updatedSessions = [...(todayAttendance.sessions || []), newSession];
+
+      setStaffAttendance(prev => prev.map(a => 
+        a.id === todayAttendance.id
+          ? { ...a, sessions: updatedSessions }
+          : a
+      ));
+    } else {
+      // Create new attendance record for today (first login)
+      const checkInTime = loginTime;
+      const checkInHour = now.getHours();
+      const checkInMinute = now.getMinutes();
+      
+      // Determine if late (after 8:00 AM)
+      const isLate = checkInHour > 8 || (checkInHour === 8 && checkInMinute > 0);
+      const lateMinutes = isLate
+        ? (checkInHour - 8) * 60 + checkInMinute
+        : 0;
+
+      const newAttendance: StaffAttendance = {
+        id: generateStaffAttendanceId(),
+        staffId,
+        staffName: staffMember.fullName,
+        department: staffMember.department,
+        role: staffMember.role,
+        date: loginTime,
+        status: isLate ? 'Late' : 'Present',
+        checkInTime,
+        checkOutTime: undefined,
+        lateMinutes: isLate ? lateMinutes : undefined,
+        sessions: [{
+          loginTime,
+          logoutTime: undefined,
+          duration: undefined,
+        }],
+        totalHoursWorked: 0,
+      };
+
+      setStaffAttendance(prev => [...prev, newAttendance]);
+
+      // Only notify on FIRST login of the day
+      addNotification({
+        type: 'info',
+        category: 'admin',
+        icon: 'Clock',
+        title: 'Staff Checked In',
+        description: `${staffMember.fullName} checked in at ${now.toLocaleTimeString()}${isLate ? ' (Late)' : ''}`,
+        module: 'Staff',
+      });
+    }
+  };
+
+  // New: Record staff logout with session tracking
+  const recordStaffLogout = (staffId: string) => {
+    const staffMember = staff.find(s => s.id === staffId);
+    if (!staffMember) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const logoutTime = now.toISOString();
+
+    // Find today's attendance record
+    const todayAttendance = staffAttendance.find(
+      a => a.staffId === staffId && a.date.startsWith(today)
+    );
+
+    if (todayAttendance && todayAttendance.sessions) {
+      // Update the last session's logout time (only if it's not already logged out)
+      const lastSession = todayAttendance.sessions[todayAttendance.sessions.length - 1];
+      
+      // Only update if last session doesn't have a logout time
+      if (lastSession && !lastSession.logoutTime) {
+        const updatedSessions = todayAttendance.sessions.map((session, index) => {
+          if (index === todayAttendance.sessions!.length - 1) {
+            const loginDate = new Date(session.loginTime);
+            const logoutDate = new Date(logoutTime);
+            const duration = Math.floor((logoutDate.getTime() - loginDate.getTime()) / (1000 * 60)); // in minutes
+
+            return {
+              ...session,
+              logoutTime,
+              duration,
+            };
+          }
+          return session;
+        });
+
+        // Calculate total hours worked
+        const totalMinutes = updatedSessions.reduce(
+          (sum, session) => sum + (session.duration || 0),
+          0
+        );
+        const totalHoursWorked = parseFloat((totalMinutes / 60).toFixed(2));
+
+        setStaffAttendance(prev => prev.map(a =>
+          a.id === todayAttendance.id
+            ? {
+                ...a,
+                sessions: updatedSessions,
+                checkOutTime: logoutTime,
+                totalHoursWorked,
+              }
+            : a
+        ));
+
+        // Removed notification to prevent spam
+      }
+    }
+  };
+
+  // New: Get today's attendance
+  const getTodayAttendance = (): StaffAttendance[] => {
+    const today = new Date().toISOString().split('T')[0];
+    return staffAttendance.filter(a => a.date.startsWith(today));
+  };
+
   // Bed Management Actions
   const addBedCategory = (bedCategoryData: Omit<BedCategory, 'id' | 'dateCreated' | 'lastUpdated' | 'availableBeds'>): BedCategory => {
     const availableBeds = bedCategoryData.totalBeds - bedCategoryData.occupiedBeds;
@@ -731,6 +877,10 @@ export function EMRStoreProvider({ children }: { children: ReactNode }) {
     setSettings(prev => ({ ...prev, ...settings }));
   };
 
+  const setCashierPIN = (pin: string) => {
+    setCashierPINState(pin);
+  };
+
   return (
     <EMRStoreContext.Provider
       value={{
@@ -745,6 +895,7 @@ export function EMRStoreProvider({ children }: { children: ReactNode }) {
         staffAttendance,
         bedCategories,
         settings,
+        cashierPIN,
         addPatient,
         updatePatient,
         deletePatient,
@@ -768,10 +919,14 @@ export function EMRStoreProvider({ children }: { children: ReactNode }) {
         addStaffAttendance,
         updateStaffAttendance,
         deleteStaffAttendance,
+        recordStaffLogin,
+        recordStaffLogout,
+        getTodayAttendance,
         addBedCategory,
         updateBedCategory,
         deleteBedCategory,
         updateSettings,
+        setCashierPIN,
       }}
     >
       {children}

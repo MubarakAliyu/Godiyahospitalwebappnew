@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, User, Calendar, Phone, MapPin, Heart, Activity,
@@ -512,7 +512,7 @@ function ViewFindingModal({ isOpen, onClose, finding }: { isOpen: boolean; onClo
 }
 
 export function PatientFilePage() {
-  const { fileNo } = useParams<{ fileNo: string }>();
+  const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { patients, appointments, invoices, markPatientAsDeceased } = useEMRStore();
   
@@ -528,8 +528,8 @@ export function PatientFilePage() {
   const [selectedLabTest, setSelectedLabTest] = useState<any>(null);
   const [selectedFinding, setSelectedFinding] = useState<any>(null);
 
-  // Find patient by file number
-  const patient = patients.find(p => p.id === fileNo);
+  // Find patient by ID
+  const patient = patients.find(p => p.id === patientId);
 
   // Get family members
   const getFamilyMembers = () => {
@@ -566,7 +566,7 @@ export function PatientFilePage() {
             <AlertTriangle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
             <h2 className="text-2xl font-semibold mb-2">Patient File Not Found</h2>
             <p className="text-muted-foreground">
-              The patient file with ID {fileNo} could not be found in the system.
+              The patient file with ID {patientId} could not be found in the system.
             </p>
           </CardContent>
         </Card>

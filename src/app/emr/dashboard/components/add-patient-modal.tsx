@@ -253,9 +253,6 @@ export function AddPatientModal({ isOpen, onClose }: AddPatientModalProps) {
                       <SelectContent>
                         <SelectItem value="Outpatient">Outpatient</SelectItem>
                         <SelectItem value="Inpatient">Inpatient</SelectItem>
-                        <SelectItem value="ER">ER</SelectItem>
-                        <SelectItem value="ICU">ICU</SelectItem>
-                        <SelectItem value="COPD">COPD</SelectItem>
                       </SelectContent>
                     </Select>
                     {errors.patientType && <p className="text-sm text-destructive">{errors.patientType}</p>}

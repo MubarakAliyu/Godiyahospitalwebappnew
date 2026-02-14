@@ -1,290 +1,366 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/app/components/ui/sonner';
-import { Navbar } from '@/app/components/navbar';
-import { Footer } from '@/app/components/footer';
-import { HomePage } from '@/app/pages/home';
-import { AboutPage } from '@/app/pages/about';
-import { ServicesPage } from '@/app/pages/services';
-import { DoctorsPage } from '@/app/pages/doctors';
-import { ContactPage } from '@/app/pages/contact';
-import { EmrLoginPage } from '@/app/pages/emr-login';
-import { ErrorBoundary } from '@/app/error-boundary';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
+import { Toaster } from 'sonner';
 
-// EMR Application Imports
-import { EMRLoginPage } from '@/app/emr/auth/login';
-import { ForgotPasswordPage } from '@/app/emr/auth/forgot-password';
-import { DashboardLayout } from '@/app/emr/dashboard/layout';
-import { DashboardHomeV2 as DashboardHome } from '@/app/emr/dashboard/home-v2';
-import { EMRStoreProvider } from '@/app/emr/store/emr-store';
-import { PatientRedirect } from '@/app/emr/components/patient-redirect';
+// Store
+import { EMRStoreProvider } from './emr/store/emr-store';
 
-// Role-Based Dashboards
-import { RoleDashboardLayout } from '@/app/emr/layouts/role-dashboard-layout';
-import { ReceptionDashboardHome } from '@/app/emr/dashboards/reception/home';
-import { ReceptionSettings } from '@/app/emr/dashboards/reception/settings';
-import { ReceptionAllPatientsPage } from '@/app/emr/dashboards/reception/all-patients';
-import { ReceptionIPDPatientsPage } from '@/app/emr/dashboards/reception/ipd-patients';
-import { ReceptionOPDPatientsPage } from '@/app/emr/dashboards/reception/opd-patients';
-import { CashierDashboardHome } from '@/app/emr/dashboards/cashier/home';
-import { CashierSettings } from '@/app/emr/dashboards/cashier/settings';
-import { DoctorDashboardHome } from '@/app/emr/dashboards/doctor/home';
-import { DoctorSettings } from '@/app/emr/dashboards/doctor/settings';
-import { LaboratoryDashboardHome } from '@/app/emr/dashboards/laboratory/home';
-import { LaboratorySettings } from '@/app/emr/dashboards/laboratory/settings';
-import { PharmacyDashboardHome } from '@/app/emr/dashboards/pharmacy/home';
-import { PharmacySettings } from '@/app/emr/dashboards/pharmacy/settings';
-import { NurseDashboardHome } from '@/app/emr/dashboards/nurse/home';
-import { NurseSettings } from '@/app/emr/dashboards/nurse/settings';
-import { ComingSoon } from '@/app/emr/components/coming-soon';
+// Public Website Pages
+import { Navbar } from './components/navbar';
+import { Footer } from './components/footer';
+import { HomePage } from './pages/home';
+import { AboutPage } from './pages/about';
+import { ServicesPage } from './pages/services';
+import { DoctorsPage } from './pages/doctors';
+import { ContactPage } from './pages/contact';
+import { EmrLoginPage } from './pages/emr-login';
 
-// Patient Management Modules
-import AllPatientsPage from '@/app/emr/modules/patients';
-import { InpatientPage } from '@/app/emr/modules/patients/inpatient';
-import { OutpatientPage } from '@/app/emr/modules/patients/outpatient';
-import { ERPatientsPage } from '@/app/emr/modules/patients/er';
-import { ICUPatientsPage } from '@/app/emr/modules/patients/icu';
-import { COPDPatientsPage } from '@/app/emr/modules/patients/copd';
-import { PatientFilePage } from '@/app/emr/modules/patients/patient-file';
+// EMR Authentication Pages
+import { EMRLoginPage } from './emr/auth/login';
+import { ForgotPasswordPage } from './emr/auth/forgot-password';
 
-// Core Modules
-import { StaffsPage } from '@/app/emr/modules/staffs';
-import { DepartmentsPage } from '@/app/emr/modules/departments';
-import { FinancePage } from '@/app/emr/modules/finance';
-import { CMSPage } from '@/app/emr/modules/cms';
-import AppointmentsPage from '@/app/emr/modules/appointments';
-import { DoctorsPage as DoctorsManagementPage } from '@/app/emr/modules/doctors';
-import { NurseDeskPage } from '@/app/emr/modules/nurse-desk';
-import { RoomsPage } from '@/app/emr/modules/rooms';
-import { BillingPage } from '@/app/emr/modules/billing';
-import { PharmacyPage } from '@/app/emr/modules/pharmacy';
-import { LaboratoryPage } from '@/app/emr/modules/laboratory';
-import { ReportsPage } from '@/app/emr/modules/reports';
+// Super Admin Dashboard
+import { DashboardLayout } from './emr/dashboard/layout';
+import { DashboardHome } from './emr/dashboard/home';
+import { AllPatientsPage } from './emr/modules/patients/all-patients';
+import { InpatientPage } from './emr/modules/patients/inpatient';
+import { OutpatientPage } from './emr/modules/patients/outpatient';
+import { ERPatientsPage } from './emr/modules/patients/er';
+import { ICUPatientsPage } from './emr/modules/patients/icu';
+import { COPDPatientsPage } from './emr/modules/patients/copd';
+import { PatientFilePage } from './emr/modules/patients/patient-file';
+import { BillingPage } from './emr/modules/billing';
+import { FinancePage } from './emr/modules/finance';
+import { AppointmentsPage } from './emr/modules/appointments';
+import { LaboratoryPage } from './emr/modules/laboratory';
+import { PharmacyPage } from './emr/modules/pharmacy';
+import { ReportsPage } from './emr/modules/reports';
+import { UserManagementPage } from './emr/modules/admin/users';
+import { RolesPermissionsPage } from './emr/modules/admin/roles';
+import { AuditLogsPage } from './emr/modules/admin/audit';
+import { NotificationsPage } from './emr/modules/notifications';
+import { SettingsPage } from './emr/modules/settings';
+import { StaffsPage } from './emr/modules/staffs';
+import { DepartmentsPage } from './emr/modules/departments';
+import { AttendancePage } from './emr/modules/attendance';
+import { RoomsPage } from './emr/modules/rooms/index';
 
-// Administration Modules
-import { RolesPermissionsPage } from '@/app/emr/modules/admin/roles';
-import { UserManagementPage } from '@/app/emr/modules/admin/users';
-import { AuditLogsPage } from '@/app/emr/modules/admin/audit';
+// Reception Dashboard
+import { RoleDashboardLayout } from './emr/layouts/role-dashboard-layout';
+import { ReceptionDashboardHome } from './emr/dashboards/reception/home';
+import { ReceptionSettings } from './emr/dashboards/reception/settings';
+import { ReceptionAllPatientsPage } from './emr/dashboards/reception/all-patients';
+import { ReceptionIPDPatientsPage } from './emr/dashboards/reception/ipd-patients';
+import { ReceptionOPDPatientsPage } from './emr/dashboards/reception/opd-patients';
+import { ReceptionPatientFilePage } from './emr/dashboards/reception/patient-file';
+import { ReceptionAppointmentsPage } from './emr/dashboards/reception/appointments';
 
-// Settings & Notifications
-import { SettingsPage } from '@/app/emr/modules/settings';
-import { NotificationsPage } from '@/app/emr/modules/notifications';
+// Cashier Dashboard
+import { CashierDashboardHome } from './emr/dashboards/cashier/home';
+import { CashierSettings } from './emr/dashboards/cashier/settings';
+import { CashierFilePaymentsPage } from './emr/dashboards/cashier/file-payments';
+import { CashierConsultationsPage } from './emr/dashboards/cashier/consultations';
+import { CashierLaboratoryPage } from './emr/dashboards/cashier/laboratory';
+import { CashierPharmacyPage } from './emr/dashboards/cashier/pharmacy';
+import { CashierBedAdmissionPage } from './emr/dashboards/cashier/bed-admission';
+import { CashierAdmissionChargesPage } from './emr/dashboards/cashier/admission-charges';
+import { CashierReportsPage } from './emr/dashboards/cashier/reports';
 
-import { Users, Bed, Stethoscope, Calendar, Receipt, FlaskConical, Pill, DollarSign, FileText, Clock, CheckCircle2, UserPlus, Folder, AlertTriangle, CalendarClock, Activity, Syringe } from 'lucide-react';
+// Doctor Dashboard
+import { DoctorDashboardHome } from './emr/dashboards/doctor/home';
+import { DoctorSettings } from './emr/dashboards/doctor/settings';
+import { DoctorAppointmentsPage } from './emr/dashboards/doctor/appointments';
+import { DoctorOPDPatientsPage } from './emr/dashboards/doctor/patients-opd';
+import { DoctorIPDPatientsPage } from './emr/dashboards/doctor/patients-ipd';
+import { DoctorPatientFilePage } from './emr/dashboards/doctor/patient-file';
+import { DoctorIPDPatientFilePage } from './emr/dashboards/doctor/ipd-patient-file';
+import { DoctorConsultationPage } from './emr/dashboards/doctor/consultation';
 
-function App() {
+// Laboratory Dashboard
+import { LaboratoryDashboardHome } from './emr/dashboards/laboratory/home';
+import { LaboratorySettings } from './emr/dashboards/laboratory/settings';
+import { AllLabTests } from './emr/dashboards/laboratory/all-lab-tests';
+import { PendingLabTests } from './emr/dashboards/laboratory/pending-lab-tests';
+import { PaidLabTests } from './emr/dashboards/laboratory/paid-lab-tests';
+import { AddInvoice } from './emr/dashboards/laboratory/add-invoice';
+import { InvoiceRecords } from './emr/dashboards/laboratory/invoice-records';
+import { FinanceReport } from './emr/dashboards/laboratory/finance-report';
+
+// Pharmacy Dashboard
+import { PharmacyDashboardHome } from './emr/dashboards/pharmacy/home';
+import { PharmacySettings } from './emr/dashboards/pharmacy/settings';
+import { AddSales } from './emr/dashboards/pharmacy/add-sales';
+import { DrugsPanel } from './emr/dashboards/pharmacy/drugs';
+import { PendingPrescriptionsPanel } from './emr/dashboards/pharmacy/pending-prescriptions';
+import { PaidPrescriptionsPanel } from './emr/dashboards/pharmacy/paid-prescriptions';
+import { LowStocksPanel } from './emr/dashboards/pharmacy/low-stocks';
+import { ExpiredDrugsPanel } from './emr/dashboards/pharmacy/expired-drugs';
+import { SalesReportPanel } from './emr/dashboards/pharmacy/sales-report';
+import { InvoiceReportPanel } from './emr/dashboards/pharmacy/invoice-report';
+
+// Nurse Dashboard
+import { NurseDashboardHome } from './emr/dashboards/nurse/home';
+import { NurseSettings } from './emr/dashboards/nurse/settings';
+import { NurseAppointmentsPage } from './emr/dashboards/nurse/appointments';
+import { NursePatients } from './emr/dashboards/nurse/patients';
+import { NurseIPDPatients } from './emr/dashboards/nurse/patients-ipd';
+import { NurseOPDPatients } from './emr/dashboards/nurse/patients-opd';
+import { NurseAdmissions } from './emr/dashboards/nurse/admissions';
+import { NurseReferrals } from './emr/dashboards/nurse/referrals';
+import { NurseSurgeries } from './emr/dashboards/nurse/surgeries';
+import { NursePatientFilePage } from './emr/dashboards/nurse/patient-file';
+
+// Shared Notifications Page
+import { NotificationsPage as RoleNotificationsPage } from './emr/pages/notifications-page';
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-muted/30">
+          <div className="text-center p-8">
+            <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
+            <p className="text-muted-foreground mb-4">Please refresh the page to try again.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-white rounded-lg"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export default function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <Routes>
-          {/* Hospital Website Routes */}
-          <Route path="/" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
+      <EMRStoreProvider>
+        <BrowserRouter>
+          <Toaster position="top-right" richColors />
+          <Routes>
+            {/* Public Hospital Website Routes */}
+            <Route path="/" element={
+              <>
+                <Navbar />
                 <HomePage />
-              </main>
-              <Footer />
-            </div>
-          } />
-          <Route path="/about" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
+                <Footer />
+              </>
+            } />
+            <Route path="/about" element={
+              <>
+                <Navbar />
                 <AboutPage />
-              </main>
-              <Footer />
-            </div>
-          } />
-          <Route path="/services" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
+                <Footer />
+              </>
+            } />
+            <Route path="/services" element={
+              <>
+                <Navbar />
                 <ServicesPage />
-              </main>
-              <Footer />
-            </div>
-          } />
-          <Route path="/doctors" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
+                <Footer />
+              </>
+            } />
+            <Route path="/doctors" element={
+              <>
+                <Navbar />
                 <DoctorsPage />
-              </main>
-              <Footer />
-            </div>
-          } />
-          <Route path="/contact" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
+                <Footer />
+              </>
+            } />
+            <Route path="/contact" element={
+              <>
+                <Navbar />
                 <ContactPage />
-              </main>
-              <Footer />
-            </div>
-          } />
-          <Route path="/emr-login" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
+                <Footer />
+              </>
+            } />
+            <Route path="/emr-login" element={
+              <>
+                <Navbar />
                 <EmrLoginPage />
-              </main>
-              <Footer />
-            </div>
-          } />
+                <Footer />
+              </>
+            } />
 
-          {/* EMR Application Routes */}
-          <Route path="/emr/login" element={<EMRLoginPage />} />
-          <Route path="/emr/forgot-password" element={<ForgotPasswordPage />} />
-          
-          {/* Redirect old patient routes to new structure */}
-          <Route path="/emr/patients/:fileNo" element={<PatientRedirect />} />
-          <Route path="/emr/patients/file/:fileNo" element={<PatientRedirect />} />
-          
-          {/* EMR Dashboard Routes - Wrapped with Store Provider */}
-          <Route path="/emr/dashboard" element={
-            <EMRStoreProvider>
-              <DashboardLayout />
-            </EMRStoreProvider>
-          }>
-            <Route index element={<DashboardHome />} />
-            
-            {/* Core Modules */}
-            <Route path="staffs" element={<StaffsPage />} />
-            <Route path="departments" element={<DepartmentsPage />} />
-            <Route path="finance" element={<FinancePage />} />
-            <Route path="cms" element={<CMSPage />} />
-            
-            {/* Patient Management */}
-            <Route path="patients" element={<AllPatientsPage />} />
-            <Route path="patients/inpatient" element={<InpatientPage />} />
-            <Route path="patients/outpatient" element={<OutpatientPage />} />
-            <Route path="patients/er" element={<ERPatientsPage />} />
-            <Route path="patients/icu" element={<ICUPatientsPage />} />
-            <Route path="patients/copd" element={<COPDPatientsPage />} />
-            <Route path="patients/:fileNo" element={<PatientFilePage />} />
-            
-            {/* Other Modules */}
-            <Route path="appointments" element={<AppointmentsPage />} />
-            <Route path="doctors" element={<DoctorsManagementPage />} />
-            <Route path="nurse-desk" element={<NurseDeskPage />} />
-            <Route path="rooms" element={<RoomsPage />} />
-            <Route path="billing" element={<BillingPage />} />
-            <Route path="pharmacy" element={<PharmacyPage />} />
-            <Route path="laboratory" element={<LaboratoryPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            
-            {/* Administration */}
-            <Route path="admin/roles" element={<RolesPermissionsPage />} />
-            <Route path="admin/users" element={<UserManagementPage />} />
-            <Route path="admin/audit" element={<AuditLogsPage />} />
-            
-            {/* Settings & Notifications */}
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-          </Route>
+            {/* EMR Authentication Routes */}
+            <Route path="/login" element={<Navigate to="/emr/login" replace />} />
+            <Route path="/emr/login" element={<EMRLoginPage />} />
+            <Route path="/emr/forgot-password" element={<ForgotPasswordPage />} />
 
-          {/* Role-Based Dashboard Routes */}
-          
-          {/* Reception Dashboard */}
-          <Route path="/emr/reception" element={
-            <EMRStoreProvider>
-              <RoleDashboardLayout />
-            </EMRStoreProvider>
-          }>
-            <Route path="dashboard" element={<ReceptionDashboardHome />} />
-            <Route path="settings" element={<ReceptionSettings />} />
-            <Route path="patients" element={<ReceptionAllPatientsPage />} />
-            <Route path="patients/:fileNo" element={<PatientFilePage />} />
-            <Route path="patients/ipd" element={<ReceptionIPDPatientsPage />} />
-            <Route path="patients/opd" element={<ReceptionOPDPatientsPage />} />
-            <Route path="appointments" element={<AppointmentsPage />} />
-          </Route>
+            {/* Super Admin Dashboard Routes */}
+            <Route path="/emr/dashboard" element={<DashboardLayout />}>
+              <Route index element={<DashboardHome />} />
+              
+              {/* Patient Management */}
+              <Route path="patients" element={<AllPatientsPage />} />
+              <Route path="patients/all" element={<AllPatientsPage />} />
+              <Route path="patients/inpatient" element={<InpatientPage />} />
+              <Route path="patients/outpatient" element={<OutpatientPage />} />
+              <Route path="patients/er" element={<ERPatientsPage />} />
+              <Route path="patients/icu" element={<ICUPatientsPage />} />
+              <Route path="patients/copd" element={<COPDPatientsPage />} />
+              <Route path="patients/:patientId" element={<PatientFilePage />} />
+              <Route path="patients/:patientId/file" element={<PatientFilePage />} />
 
-          {/* Cashier Dashboard */}
-          <Route path="/emr/cashier" element={
-            <EMRStoreProvider>
-              <RoleDashboardLayout />
-            </EMRStoreProvider>
-          }>
-            <Route path="dashboard" element={<CashierDashboardHome />} />
-            <Route path="settings" element={<CashierSettings />} />
-            <Route path="payments" element={<ComingSoon icon={Receipt} title="File Payments" />} />
-            <Route path="consultations" element={<ComingSoon icon={Stethoscope} title="Consultations" />} />
-            <Route path="laboratory" element={<ComingSoon icon={FlaskConical} title="Laboratory" />} />
-            <Route path="pharmacy" element={<ComingSoon icon={Pill} title="Pharmacy" />} />
-            <Route path="bed-admission" element={<ComingSoon icon={Bed} title="Bed Admission" />} />
-            <Route path="admission-charges" element={<ComingSoon icon={DollarSign} title="Admission Charges" />} />
-            <Route path="reports" element={<ComingSoon icon={FileText} title="Reports" />} />
-          </Route>
+              {/* Other Modules */}
+              <Route path="billing" element={<BillingPage />} />
+              <Route path="finance" element={<FinancePage />} />
+              <Route path="appointments" element={<AppointmentsPage />} />
+              
+              {/* Laboratory */}
+              <Route path="laboratory" element={<LaboratoryPage />} />
+              
+              {/* Pharmacy */}
+              <Route path="pharmacy" element={<PharmacyPage />} />
+              
+              {/* Reports */}
+              <Route path="reports" element={<ReportsPage />} />
+              
+              {/* Administration */}
+              <Route path="administration" element={<UserManagementPage />} />
+              <Route path="administration/roles" element={<RolesPermissionsPage />} />
+              <Route path="administration/audit-logs" element={<AuditLogsPage />} />
+              
+              {/* Notifications */}
+              <Route path="notifications" element={<NotificationsPage />} />
+              
+              {/* Settings */}
+              <Route path="settings" element={<SettingsPage />} />
+              
+              {/* Staff Management */}
+              <Route path="staffs" element={<StaffsPage />} />
+              
+              {/* Department Management */}
+              <Route path="departments" element={<DepartmentsPage />} />
+              
+              {/* Attendance / Staff Attendance (CMS) */}
+              <Route path="attendance" element={<AttendancePage />} />
+              <Route path="cms" element={<AttendancePage />} />
+              
+              {/* Rooms */}
+              <Route path="rooms" element={<RoomsPage />} />
+            </Route>
 
-          {/* Doctor Dashboard */}
-          <Route path="/emr/doctor" element={
-            <EMRStoreProvider>
-              <RoleDashboardLayout />
-            </EMRStoreProvider>
-          }>
-            <Route path="dashboard" element={<DoctorDashboardHome />} />
-            <Route path="settings" element={<DoctorSettings />} />
-            <Route path="appointments" element={<AppointmentsPage />} />
-            <Route path="patients/opd" element={<ComingSoon icon={Stethoscope} title="OPD Patients" />} />
-            <Route path="patients/ipd" element={<ComingSoon icon={Bed} title="IPD Patients" />} />
-          </Route>
+            {/* Reception Dashboard Routes */}
+            <Route path="/emr/reception" element={<RoleDashboardLayout role="reception" />}>
+              <Route index element={<ReceptionDashboardHome />} />
+              <Route path="dashboard" element={<ReceptionDashboardHome />} />
+              <Route path="patients" element={<ReceptionAllPatientsPage />} />
+              <Route path="patients/all" element={<ReceptionAllPatientsPage />} />
+              <Route path="patients/ipd" element={<ReceptionIPDPatientsPage />} />
+              <Route path="patients/opd" element={<ReceptionOPDPatientsPage />} />
+              <Route path="patients/:patientId" element={<ReceptionPatientFilePage />} />
+              <Route path="patients/:patientId/file" element={<ReceptionPatientFilePage />} />
+              <Route path="appointments" element={<ReceptionAppointmentsPage />} />
+              <Route path="notifications" element={<RoleNotificationsPage />} />
+              <Route path="settings" element={<ReceptionSettings />} />
+            </Route>
 
-          {/* Laboratory Dashboard */}
-          <Route path="/emr/laboratory" element={
-            <EMRStoreProvider>
-              <RoleDashboardLayout />
-            </EMRStoreProvider>
-          }>
-            <Route path="dashboard" element={<LaboratoryDashboardHome />} />
-            <Route path="settings" element={<LaboratorySettings />} />
-            <Route path="tests" element={<ComingSoon icon={FlaskConical} title="All Lab Tests" />} />
-            <Route path="tests/pending" element={<ComingSoon icon={Clock} title="Pending Tests" />} />
-            <Route path="tests/paid" element={<ComingSoon icon={CheckCircle2} title="Paid Tests" />} />
-            <Route path="invoice/add" element={<ComingSoon icon={UserPlus} title="Add Invoice" />} />
-            <Route path="invoices" element={<ComingSoon icon={Folder} title="Invoice Records" />} />
-            <Route path="reports" element={<ComingSoon icon={FileText} title="Finance Report" />} />
-          </Route>
+            {/* Cashier Dashboard Routes */}
+            <Route path="/emr/cashier" element={<RoleDashboardLayout role="cashier" />}>
+              <Route index element={<CashierDashboardHome />} />
+              <Route path="dashboard" element={<CashierDashboardHome />} />
+              <Route path="settings" element={<CashierSettings />} />
+              <Route path="payments" element={<CashierFilePaymentsPage />} />
+              <Route path="consultations" element={<CashierConsultationsPage />} />
+              <Route path="laboratory" element={<CashierLaboratoryPage />} />
+              <Route path="pharmacy" element={<CashierPharmacyPage />} />
+              <Route path="bed-admission" element={<CashierBedAdmissionPage />} />
+              <Route path="admission-charges" element={<CashierAdmissionChargesPage />} />
+              <Route path="reports" element={<CashierReportsPage />} />
+              <Route path="notifications" element={<RoleNotificationsPage />} />
+            </Route>
 
-          {/* Pharmacy Dashboard */}
-          <Route path="/emr/pharmacy" element={
-            <EMRStoreProvider>
-              <RoleDashboardLayout />
-            </EMRStoreProvider>
-          }>
-            <Route path="dashboard" element={<PharmacyDashboardHome />} />
-            <Route path="settings" element={<PharmacySettings />} />
-            <Route path="sales/add" element={<ComingSoon icon={DollarSign} title="Add Sales" />} />
-            <Route path="drugs" element={<ComingSoon icon={Pill} title="Drugs" />} />
-            <Route path="prescriptions/pending" element={<ComingSoon icon={Clock} title="Pending Prescriptions" />} />
-            <Route path="prescriptions/paid" element={<ComingSoon icon={CheckCircle2} title="Paid Prescriptions" />} />
-            <Route path="stocks/low" element={<ComingSoon icon={AlertTriangle} title="Low Stocks" />} />
-            <Route path="drugs/expired" element={<ComingSoon icon={CalendarClock} title="Expired Drugs" />} />
-            <Route path="reports/sales" element={<ComingSoon icon={FileText} title="Sales Report" />} />
-            <Route path="reports/invoices" element={<ComingSoon icon={Receipt} title="Invoice Report" />} />
-          </Route>
+            {/* Doctor Dashboard Routes */}
+            <Route path="/emr/doctor" element={<RoleDashboardLayout role="doctor" />}>
+              <Route index element={<DoctorDashboardHome />} />
+              <Route path="dashboard" element={<DoctorDashboardHome />} />
+              <Route path="settings" element={<DoctorSettings />} />
+              <Route path="appointments" element={<DoctorAppointmentsPage />} />
+              <Route path="patients" element={<Navigate to="/emr/doctor/patients/opd" replace />} />
+              <Route path="patients/opd" element={<DoctorOPDPatientsPage />} />
+              <Route path="patients/ipd" element={<DoctorIPDPatientsPage />} />
+              <Route path="patients/:patientId" element={<DoctorPatientFilePage />} />
+              <Route path="patients/:patientId/file" element={<DoctorPatientFilePage />} />
+              <Route path="patients/:patientId/consultation" element={<DoctorConsultationPage />} />
+              <Route path="patients/:patientId/ipd-file" element={<DoctorIPDPatientFilePage />} />
+              <Route path="notifications" element={<RoleNotificationsPage />} />
+            </Route>
 
-          {/* Nurse Dashboard */}
-          <Route path="/emr/nurse" element={
-            <EMRStoreProvider>
-              <RoleDashboardLayout />
-            </EMRStoreProvider>
-          }>
-            <Route path="dashboard" element={<NurseDashboardHome />} />
-            <Route path="settings" element={<NurseSettings />} />
-            <Route path="appointments" element={<AppointmentsPage />} />
-            <Route path="patients" element={<ComingSoon icon={Users} title="All Patients" />} />
-            <Route path="patients/ipd" element={<ComingSoon icon={Bed} title="IPD Patients" />} />
-            <Route path="patients/opd" element={<ComingSoon icon={Stethoscope} title="OPD Patients" />} />
-            <Route path="admissions" element={<ComingSoon icon={UserPlus} title="Admission Requests" />} />
-            <Route path="referrals" element={<ComingSoon icon={Activity} title="Refer Requests" />} />
-            <Route path="surgeries" element={<ComingSoon icon={Syringe} title="Surgery Requests" />} />
-          </Route>
-        </Routes>
-        <Toaster position="top-center" richColors />
-      </BrowserRouter>
+            {/* Laboratory Dashboard Routes */}
+            <Route path="/emr/laboratory-staff" element={<RoleDashboardLayout role="laboratory" />}>
+              <Route index element={<LaboratoryDashboardHome />} />
+              <Route path="dashboard" element={<LaboratoryDashboardHome />} />
+              <Route path="settings" element={<LaboratorySettings />} />
+              <Route path="notifications" element={<RoleNotificationsPage />} />
+              <Route path="all-lab-tests" element={<AllLabTests />} />
+              <Route path="pending-tests" element={<PendingLabTests />} />
+              <Route path="paid-tests" element={<PaidLabTests />} />
+              <Route path="add-invoice" element={<AddInvoice />} />
+              <Route path="invoice-records" element={<InvoiceRecords />} />
+              <Route path="finance-report" element={<FinanceReport />} />
+            </Route>
+
+            {/* Pharmacy Dashboard Routes */}
+            <Route path="/emr/pharmacy-staff" element={<RoleDashboardLayout role="pharmacy" />}>
+              <Route index element={<PharmacyDashboardHome />} />
+              <Route path="dashboard" element={<PharmacyDashboardHome />} />
+              <Route path="settings" element={<PharmacySettings />} />
+              <Route path="notifications" element={<RoleNotificationsPage />} />
+              <Route path="add-sales" element={<AddSales />} />
+              <Route path="drugs" element={<DrugsPanel />} />
+              <Route path="pending-prescriptions" element={<PendingPrescriptionsPanel />} />
+              <Route path="paid-prescriptions" element={<PaidPrescriptionsPanel />} />
+              <Route path="low-stocks" element={<LowStocksPanel />} />
+              <Route path="expired-drugs" element={<ExpiredDrugsPanel />} />
+              <Route path="sales-report" element={<SalesReportPanel />} />
+              <Route path="invoice-report" element={<InvoiceReportPanel />} />
+            </Route>
+
+            {/* Nurse Dashboard Routes */}
+            <Route path="/emr/nurse" element={<RoleDashboardLayout role="nurse" />}>
+              <Route index element={<NurseDashboardHome />} />
+              <Route path="dashboard" element={<NurseDashboardHome />} />
+              <Route path="settings" element={<NurseSettings />} />
+              <Route path="appointments" element={<NurseAppointmentsPage />} />
+              <Route path="patients" element={<NursePatients />} />
+              <Route path="patients/ipd" element={<NurseIPDPatients />} />
+              <Route path="patients/opd" element={<NurseOPDPatients />} />
+              <Route path="admissions" element={<NurseAdmissions />} />
+              <Route path="referrals" element={<NurseReferrals />} />
+              <Route path="surgeries" element={<NurseSurgeries />} />
+              <Route path="patients/:patientId" element={<NursePatientFilePage />} />
+              <Route path="patients/:patientId/file" element={<NursePatientFilePage />} />
+              <Route path="notifications" element={<RoleNotificationsPage />} />
+            </Route>
+
+            {/* Catch-all route for unmatched paths */}
+            <Route path="*" element={<Navigate to="/emr/login" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </EMRStoreProvider>
     </ErrorBoundary>
   );
 }
-
-export default App;

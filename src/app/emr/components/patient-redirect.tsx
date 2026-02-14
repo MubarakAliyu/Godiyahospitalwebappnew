@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 
 export function PatientRedirect() {
   const { fileNo } = useParams<{ fileNo: string }>();

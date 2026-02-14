@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { Patient } from '@/app/emr/store/types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
   Users, UserCircle, UsersRound, Bed, Stethoscope, Skull,

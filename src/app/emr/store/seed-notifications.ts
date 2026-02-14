@@ -82,7 +82,7 @@ export const seedNotifications: Notification[] = [
     module: 'Security',
     timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString(), // 4 hours ago
     unread: true,
-    actionLink: '/emr/dashboard/admin/users',
+    actionLink: '/emr/dashboard/administration',
     actionLabel: 'View Security Logs',
   },
   {
@@ -148,7 +148,7 @@ export const seedNotifications: Notification[] = [
     module: 'Departments',
     timestamp: new Date(Date.now() - 1000 * 60 * 540).toISOString(), // 9 hours ago
     unread: false,
-    actionLink: '/emr/dashboard/admin/departments',
+    actionLink: '/emr/dashboard/departments',
     actionLabel: 'View Departments',
   },
   {

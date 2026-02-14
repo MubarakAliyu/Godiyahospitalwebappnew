@@ -30,9 +30,6 @@ export function ViewPatientFileModal({ isOpen, onClose, patient }: ViewPatientFi
     const colors: Record<string, string> = {
       'Inpatient': 'bg-blue-100 text-blue-700',
       'Outpatient': 'bg-green-100 text-green-700',
-      'ER': 'bg-red-100 text-red-700',
-      'ICU': 'bg-purple-100 text-purple-700',
-      'COPD': 'bg-orange-100 text-orange-700',
     };
     return colors[type] || 'bg-gray-100 text-gray-700';
   };
@@ -47,7 +44,8 @@ export function ViewPatientFileModal({ isOpen, onClose, patient }: ViewPatientFi
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            style={{ height: '100vh', width: '100vw' }}
           />
           
           {/* Modal */}

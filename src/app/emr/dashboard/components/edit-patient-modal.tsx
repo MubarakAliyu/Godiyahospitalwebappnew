@@ -225,9 +225,6 @@ export function EditPatientModal({ isOpen, onClose, patient }: EditPatientModalP
                         <SelectContent>
                           <SelectItem value="Inpatient">Inpatient</SelectItem>
                           <SelectItem value="Outpatient">Outpatient</SelectItem>
-                          <SelectItem value="ER">ER</SelectItem>
-                          <SelectItem value="ICU">ICU</SelectItem>
-                          <SelectItem value="COPD">COPD</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

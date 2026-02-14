@@ -1,6 +1,6 @@
 // Type definitions for the EMR store
 
-export type PatientType = 'Inpatient' | 'Outpatient' | 'ER' | 'ICU' | 'COPD';
+export type PatientType = 'Inpatient' | 'Outpatient';
 export type PatientStatus = 'Active' | 'Admitted' | 'Discharged' | 'Pending Payment';
 export type Gender = 'Male' | 'Female';
 export type FileType = 'Individual' | 'Family';
@@ -161,6 +161,12 @@ export interface Staff {
 // Staff Attendance Types
 export type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'On Leave';
 
+export interface AttendanceSession {
+  loginTime: string;
+  logoutTime?: string;
+  duration?: number; // in minutes
+}
+
 export interface StaffAttendance {
   id: string;
   staffId: string;
@@ -169,10 +175,12 @@ export interface StaffAttendance {
   role: StaffRole;
   date: string;
   status: AttendanceStatus;
-  checkInTime?: string;
-  checkOutTime?: string;
+  checkInTime?: string; // First login of the day
+  checkOutTime?: string; // Last logout of the day
   lateMinutes?: number;
   notes?: string;
+  sessions?: AttendanceSession[]; // All login/logout sessions for the day
+  totalHoursWorked?: number; // Total hours worked in the day
 }
 
 // Bed Management Types

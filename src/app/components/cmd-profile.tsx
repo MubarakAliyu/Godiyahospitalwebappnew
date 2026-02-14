@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Button } from './ui/button';
 import { ChevronRight } from 'lucide-react';
 import cmdImage from 'figma:asset/6b894a7d8d459f49c498cb60b8471bf6a794472a.png';

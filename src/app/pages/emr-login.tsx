@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { Lock, Mail, Shield, Phone, ArrowLeft, HelpCircle } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/card';

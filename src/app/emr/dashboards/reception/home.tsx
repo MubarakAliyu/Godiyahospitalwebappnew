@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useEMRStore } from '@/app/emr/store/emr-store';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { AddPatientModal } from './components/add-patient-modal';
 import { CreateAppointmentModal } from './components/create-appointment-modal';
 import { RecordPaymentModal } from './components/record-payment-modal';

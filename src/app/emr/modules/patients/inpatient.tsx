@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { Patient } from '@/app/emr/store/types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
   Bed, UserCircle, Activity, Clock, TrendingUp,
@@ -164,8 +164,8 @@ export function InpatientPage() {
     const variants: Record<string, any> = {
       Active: { className: 'bg-green-100 text-green-700 hover:bg-green-100' },
       Admitted: { className: 'bg-blue-100 text-blue-700 hover:bg-blue-100' },
-      ICU: { className: 'bg-purple-100 text-purple-700 hover:bg-purple-100' },
       Discharged: { className: 'bg-gray-100 text-gray-700 hover:bg-gray-100' },
+      'Pending Payment': { className: 'bg-orange-100 text-orange-700 hover:bg-orange-100' },
     };
 
     return <Badge {...(variants[patient.status] || variants.Active)}>{patient.status}</Badge>;

@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation } from 'react-router';
 import { motion } from 'motion/react';
 import { RoleBasedSidebar } from '@/app/emr/components/role-based-sidebar';
 import { EMRHeader } from '@/app/emr/components/emr-header';
 import { getCurrentUser } from '@/app/emr/utils/auth';
+import { useEMRStore } from '@/app/emr/store/emr-store';
 
 // Helper to generate breadcrumbs from path
 function getBreadcrumbs(pathname: string) {
@@ -30,6 +31,8 @@ function getBreadcrumbs(pathname: string) {
     'surgeries': 'Surgeries',
     'ipd': 'IPD',
     'opd': 'OPD',
+    'settings': 'Settings',
+    'notifications': 'Notifications',
   };
 
   let currentPath = '';
@@ -50,13 +53,42 @@ function getBreadcrumbs(pathname: string) {
 export function RoleDashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { recordStaffLogin, recordStaffLogout } = useEMRStore();
 
   useEffect(() => {
     const auth = getCurrentUser();
     if (!auth) {
       navigate('/emr/login');
+      return;
     }
-  }, [navigate]);
+
+    // Check if we've already recorded login for this session
+    const sessionKey = `attendance_logged_${auth.staffId}_${new Date().toISOString().split('T')[0]}`;
+    const alreadyLogged = sessionStorage.getItem(sessionKey);
+
+    // Only record login ONCE per browser session
+    if (auth.staffId && !alreadyLogged) {
+      recordStaffLogin(auth.staffId);
+      // Mark as logged for this session
+      sessionStorage.setItem(sessionKey, 'true');
+    }
+
+    // Record logout only when user closes browser/tab
+    const handleBeforeUnload = () => {
+      if (auth.staffId) {
+        recordStaffLogout(auth.staffId);
+        // Clear the session flag so next login will be recorded
+        sessionStorage.removeItem(sessionKey);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup - only remove event listener, DON'T record logout on unmount
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [navigate]); // Only depend on navigate, not the record functions
 
   const breadcrumbs = getBreadcrumbs(location.pathname);
 
