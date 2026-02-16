@@ -832,148 +832,241 @@ export function PendingPrescriptionsPanel() {
 
       {/* View & Dispense Prescription Modal */}
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-        <DialogContent className="max-w-[95vw] w-[1600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-2xl">
+        <DialogContent className="max-w-[1400px] w-[90vw] max-h-[95vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="flex items-center gap-3 text-2xl">
               <FileText className="w-6 h-6 text-primary" />
               Prescription Details & Dispensing
             </DialogTitle>
-            <DialogDescription className="text-base">
-              Review prescription and select drugs to dispense
+            <DialogDescription className="text-base mt-2">
+              Review prescription information, select drugs to dispense, and submit to cashier for payment
             </DialogDescription>
           </DialogHeader>
 
           {selectedPrescription && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 py-6">
-              {/* LEFT PANEL - Patient Info */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader className="pb-5">
+            <div className="space-y-6 py-6">
+              {/* TOP SECTION - Patient & Prescription Info (2 Columns) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Patient Information */}
+                <Card className="border-2">
+                  <CardHeader className="pb-4 bg-blue-50/50">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <User className="w-5 h-5 text-primary" />
                       Patient Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 gap-8">
+                  <CardContent className="pt-5 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">File Number</Label>
-                        <p className="font-semibold text-base">{selectedPrescription.fileNumber}</p>
+                        <Label className="text-xs text-muted-foreground mb-1.5 block">File Number</Label>
+                        <p className="font-bold text-base text-primary">{selectedPrescription.fileNumber}</p>
                       </div>
                       <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">Patient Type</Label>
+                        <Label className="text-xs text-muted-foreground mb-1.5 block">Patient Type</Label>
                         <Badge 
                           variant="outline" 
-                          className={`text-sm px-3 py-1.5 ${selectedPrescription.patientType === 'IPD' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'}`}
+                          className={`text-sm px-3 py-1.5 ${selectedPrescription.patientType === 'IPD' ? 'bg-blue-100 text-blue-700 border-blue-300' : 'bg-green-100 text-green-700 border-green-300'}`}
                         >
                           {selectedPrescription.patientType}
                         </Badge>
                       </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Patient Name</Label>
+                      <p className="font-semibold text-lg">{selectedPrescription.patientName}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">Patient Name</Label>
-                        <p className="font-semibold text-base">{selectedPrescription.patientName}</p>
+                        <Label className="text-xs text-muted-foreground mb-1.5 block">Age</Label>
+                        <p className="font-semibold">{selectedPrescription.patientAge} years</p>
                       </div>
                       <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">Age / Gender</Label>
-                        <p className="font-semibold text-base">{selectedPrescription.patientAge}y • {selectedPrescription.patientGender}</p>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">Phone</Label>
-                        <p className="font-semibold text-base">{selectedPrescription.patientPhone}</p>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">Prescription ID</Label>
-                        <p className="font-semibold text-primary text-base">{selectedPrescription.prescriptionId}</p>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">Prescribed By</Label>
-                        <p className="font-semibold text-base">{selectedPrescription.prescribedBy}</p>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">Date</Label>
-                        <p className="font-semibold text-base">{new Date(selectedPrescription.prescriptionDate).toLocaleDateString()}</p>
+                        <Label className="text-xs text-muted-foreground mb-1.5 block">Gender</Label>
+                        <p className="font-semibold">{selectedPrescription.patientGender}</p>
                       </div>
                     </div>
-
-                    {selectedPrescription.notes && (
-                      <>
-                        <Separator className="my-5" />
-                        <div>
-                          <Label className="text-xs text-muted-foreground mb-2 block">Clinical Notes</Label>
-                          <p className="text-sm mt-2 p-5 bg-muted/50 rounded-lg leading-relaxed">{selectedPrescription.notes}</p>
-                        </div>
-                      </>
-                    )}
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Phone</Label>
+                      <p className="font-semibold">{selectedPrescription.patientPhone}</p>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="pb-5">
+                {/* Prescription Details */}
+                <Card className="border-2">
+                  <CardHeader className="pb-4 bg-green-50/50">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <ClipboardList className="w-5 h-5 text-primary" />
-                      Prescribed Medications
+                      <ClipboardList className="w-5 h-5 text-secondary" />
+                      Prescription Details
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {selectedPrescription.prescribedDrugs.map((drug, idx) => (
-                        <div key={idx} className="p-5 border rounded-lg bg-muted/20">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <p className="font-semibold text-base mb-1.5">{drug.name}</p>
-                              <p className="text-sm text-muted-foreground">{drug.dosage}</p>
-                            </div>
-                            <Badge variant="outline" className="text-sm px-4 py-1.5">{drug.quantity} units</Badge>
-                          </div>
-                          <div className="text-sm space-y-2.5 text-muted-foreground">
-                            <p><span className="font-medium text-foreground">Duration:</span> {drug.duration}</p>
-                            <p><span className="font-medium text-foreground">Instructions:</span> {drug.instructions}</p>
-                          </div>
-                        </div>
-                      ))}
+                  <CardContent className="pt-5 space-y-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Prescription ID</Label>
+                      <p className="font-bold text-base text-secondary">{selectedPrescription.prescriptionId}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Prescribed By</Label>
+                      <p className="font-semibold text-base">{selectedPrescription.prescribedBy}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Prescription Date</Label>
+                      <p className="font-semibold">{new Date(selectedPrescription.prescriptionDate).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Status</Label>
+                      <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 text-sm px-3 py-1.5">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Pending Dispensing
+                      </Badge>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Total Medications</Label>
+                      <p className="font-bold text-lg">{selectedPrescription.prescribedDrugs.length} drugs prescribed</p>
                     </div>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* RIGHT PANEL - Drug Inventory Picker */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader className="pb-5">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Package className="w-5 h-5 text-primary" />
-                      Drugs to Dispense
+              {/* Prescribed Medications (Full Width) */}
+              <Card className="border-2">
+                <CardHeader className="pb-4 bg-purple-50/50">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Pill className="w-5 h-5 text-purple-600" />
+                    Prescribed Medications
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedPrescription.prescribedDrugs.map((drug, idx) => (
+                      <div key={idx} className="p-4 border rounded-lg bg-white hover:bg-muted/30 transition-colors">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-base mb-1">{drug.name}</p>
+                            <p className="text-sm text-muted-foreground">{drug.dosage}</p>
+                          </div>
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 shrink-0">
+                            {drug.quantity} units
+                          </Badge>
+                        </div>
+                        <div className="space-y-1.5 text-xs text-muted-foreground">
+                          <p><span className="font-medium text-foreground">Duration:</span> {drug.duration}</p>
+                          <p><span className="font-medium text-foreground">Instructions:</span> {drug.instructions}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Clinical Notes (if available) */}
+              {selectedPrescription.notes && (
+                <Card className="border-2 border-blue-200 bg-blue-50/30">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" />
+                      Clinical Notes
                     </CardTitle>
-                    <CardDescription>Review and confirm quantities</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-5">
-                      {selectedDrugs.map((drug) => {
-                        const inventoryDrug = drugs.find(d => d.drugId === drug.drugId);
-                        const isAvailable = inventoryDrug && inventoryDrug.status === 'In Stock';
-                        const isLowStock = inventoryDrug && inventoryDrug.status === 'Low Stock';
-                        const isOutOfStock = inventoryDrug && (inventoryDrug.status === 'Out of Stock' || inventoryDrug.status === 'Expired');
+                    <p className="text-sm leading-relaxed p-4 bg-white rounded-lg border">{selectedPrescription.notes}</p>
+                  </CardContent>
+                </Card>
+              )}
 
-                        return (
-                          <div key={drug.drugId} className={`p-6 border rounded-lg ${isOutOfStock ? 'bg-red-50 border-red-200' : isLowStock ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'}`}>
-                            <div className="flex items-start justify-between mb-5">
-                              <div className="flex-1 pr-6">
-                                <p className="font-semibold text-base mb-2.5">{drug.name}</p>
-                                <div className="flex items-center gap-4 flex-wrap">
-                                  <Badge variant="outline" className="text-sm px-4 py-1.5">
+              {/* Drugs to Dispense Section */}
+              <Card className="border-2 border-primary/30">
+                <CardHeader className="pb-4 bg-gradient-to-r from-blue-50 to-green-50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <Package className="w-6 h-6 text-primary" />
+                        Drugs to Dispense
+                      </CardTitle>
+                      <CardDescription className="mt-1 text-base">
+                        Review drug availability, adjust quantities, and confirm dispensing details
+                      </CardDescription>
+                    </div>
+                    <Badge variant="outline" className="text-base px-4 py-2 bg-white">
+                      {selectedDrugs.length} drugs selected
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {selectedDrugs.map((drug, index) => {
+                      const inventoryDrug = drugs.find(d => d.drugId === drug.drugId);
+                      const isAvailable = inventoryDrug && inventoryDrug.status === 'In Stock';
+                      const isLowStock = inventoryDrug && inventoryDrug.status === 'Low Stock';
+                      const isOutOfStock = inventoryDrug && (inventoryDrug.status === 'Out of Stock' || inventoryDrug.status === 'Expired');
+
+                      return (
+                        <div 
+                          key={drug.drugId} 
+                          className={`p-5 border-2 rounded-xl transition-all ${
+                            isOutOfStock 
+                              ? 'bg-red-50/50 border-red-300' 
+                              : isLowStock 
+                                ? 'bg-orange-50/50 border-orange-300' 
+                                : 'bg-green-50/50 border-green-300'
+                          }`}
+                        >
+                          <div className="flex items-start gap-6">
+                            {/* Drug Number Badge */}
+                            <div className="flex-shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="font-bold text-primary">{index + 1}</span>
+                              </div>
+                            </div>
+
+                            {/* Drug Details - Grid Layout */}
+                            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                              {/* Drug Info - 4 columns */}
+                              <div className="lg:col-span-4 space-y-2">
+                                <div>
+                                  <Label className="text-xs text-muted-foreground mb-1 block">Drug Name</Label>
+                                  <p className="font-bold text-base">{drug.name}</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs px-2.5 py-1 ${
+                                      isOutOfStock 
+                                        ? 'bg-red-100 text-red-700 border-red-300' 
+                                        : isLowStock 
+                                          ? 'bg-orange-100 text-orange-700 border-orange-300' 
+                                          : 'bg-green-100 text-green-700 border-green-300'
+                                    }`}
+                                  >
                                     Available: {drug.available}
                                   </Badge>
-                                  <Badge variant="outline" className="text-sm px-4 py-1.5">
+                                  <Badge variant="outline" className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 border-blue-300">
                                     Prescribed: {drug.quantityPrescribed}
                                   </Badge>
                                 </div>
+                                {isOutOfStock && (
+                                  <p className="text-xs text-destructive font-semibold flex items-center gap-1.5 mt-2">
+                                    <AlertCircle className="w-3.5 h-3.5" />
+                                    Out of Stock - Cannot Dispense
+                                  </p>
+                                )}
+                                {isLowStock && (
+                                  <p className="text-xs text-orange-700 font-semibold flex items-center gap-1.5 mt-2">
+                                    <AlertCircle className="w-3.5 h-3.5" />
+                                    Low Stock Warning
+                                  </p>
+                                )}
                               </div>
-                              <p className="font-bold text-xl text-primary">₦{drug.price.toLocaleString()}</p>
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-6">
-                              <div>
-                                <Label className="text-xs mb-2.5 block font-medium">Quantity to Dispense</Label>
+                              {/* Unit Price - 2 columns */}
+                              <div className="lg:col-span-2">
+                                <Label className="text-xs text-muted-foreground mb-1 block">Unit Price</Label>
+                                <p className="font-bold text-lg text-primary">₦{drug.price.toLocaleString()}</p>
+                              </div>
+
+                              {/* Quantity Input - 3 columns */}
+                              <div className="lg:col-span-3">
+                                <Label className="text-xs text-muted-foreground mb-2 block">Quantity to Dispense</Label>
                                 <Input
                                   type="number"
                                   value={drug.quantityDispensed}
@@ -981,64 +1074,85 @@ export function PendingPrescriptionsPanel() {
                                   min={1}
                                   max={Math.min(drug.quantityPrescribed, drug.available)}
                                   disabled={isOutOfStock}
-                                  className="h-11 text-base"
+                                  className={`h-12 text-base font-semibold text-center ${
+                                    isOutOfStock ? 'bg-red-100 cursor-not-allowed' : 'bg-white'
+                                  }`}
                                 />
                               </div>
-                              <div className="text-right">
-                                <Label className="text-xs mb-2.5 block font-medium">Subtotal</Label>
-                                <p className="font-bold text-xl text-primary mt-2">₦{(drug.price * drug.quantityDispensed).toLocaleString()}</p>
+
+                              {/* Subtotal - 3 columns */}
+                              <div className="lg:col-span-3 text-right">
+                                <Label className="text-xs text-muted-foreground mb-1 block">Subtotal</Label>
+                                <p className="font-bold text-2xl text-primary">
+                                  ₦{(drug.price * drug.quantityDispensed).toLocaleString()}
+                                </p>
                               </div>
                             </div>
-
-                            {isOutOfStock && (
-                              <p className="text-sm text-destructive mt-4 flex items-center gap-2 font-medium">
-                                <AlertCircle className="w-4 h-4" />
-                                Drug unavailable - Cannot dispense
-                              </p>
-                            )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
 
-                <Card className="border-2 border-primary/20">
-                  <CardContent className="p-7">
-                    <div className="space-y-5">
-                      <div className="flex items-center justify-between text-base">
-                        <span className="font-medium text-lg">Total Drugs:</span>
-                        <span className="font-semibold text-xl">{selectedDrugs.length} items</span>
-                      </div>
-                      <div className="flex items-center justify-between text-base">
-                        <span className="font-medium text-lg">Total Units:</span>
-                        <span className="font-semibold text-xl">{selectedDrugs.reduce((sum, d) => sum + d.quantityDispensed, 0)}</span>
-                      </div>
-                      <Separator className="my-4" />
-                      <div className="flex items-center justify-between pt-3">
-                        <span className="text-2xl font-bold">Total Cost:</span>
-                        <span className="text-4xl font-bold text-primary">
-                          ₦{selectedDrugs.reduce((sum, d) => sum + (d.price * d.quantityDispensed), 0).toLocaleString()}
-                        </span>
-                      </div>
+              {/* Summary Section */}
+              <Card className="border-4 border-primary/40 bg-gradient-to-br from-blue-50 via-white to-green-50">
+                <CardContent className="p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="text-center p-4 bg-white rounded-xl border-2 border-blue-200">
+                      <Label className="text-sm text-muted-foreground mb-2 block">Total Drugs</Label>
+                      <p className="text-3xl font-bold text-blue-600">{selectedDrugs.length}</p>
+                      <p className="text-xs text-muted-foreground mt-1">medications</p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    <div className="text-center p-4 bg-white rounded-xl border-2 border-green-200">
+                      <Label className="text-sm text-muted-foreground mb-2 block">Total Units</Label>
+                      <p className="text-3xl font-bold text-green-600">
+                        {selectedDrugs.reduce((sum, d) => sum + d.quantityDispensed, 0)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">units to dispense</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-xl border-2 border-purple-200">
+                      <Label className="text-sm text-muted-foreground mb-2 block">Available Drugs</Label>
+                      <p className="text-3xl font-bold text-purple-600">
+                        {selectedDrugs.filter(d => {
+                          const inv = drugs.find(drug => drug.drugId === d.drugId);
+                          return inv && inv.status === 'In Stock';
+                        }).length}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">in stock</p>
+                    </div>
+                    <div className="text-center p-6 bg-gradient-to-br from-primary to-secondary rounded-xl border-4 border-primary/50 shadow-lg">
+                      <Label className="text-sm text-white/90 mb-2 block font-semibold">TOTAL COST</Label>
+                      <p className="text-4xl font-bold text-white drop-shadow-lg">
+                        ₦{selectedDrugs.reduce((sum, d) => sum + (d.price * d.quantityDispensed), 0).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-white/80 mt-2">to be paid at cashier</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          <DialogFooter className="gap-3 pt-6">
-            <Button variant="outline" onClick={() => {
-              setViewModalOpen(false);
-              setSelectedPrescription(null);
-              setSelectedDrugs([]);
-            }} className="px-8 h-11">
+          <DialogFooter className="gap-4 pt-6 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setViewModalOpen(false);
+                setSelectedPrescription(null);
+                setSelectedDrugs([]);
+              }} 
+              className="px-10 h-12 text-base"
+            >
               Cancel
             </Button>
-            <Button onClick={handleSubmitPrescription} className="bg-primary hover:bg-primary/90 px-8 h-11">
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Submit
+            <Button 
+              onClick={handleSubmitPrescription} 
+              className="bg-primary hover:bg-primary/90 px-10 h-12 text-base font-semibold"
+            >
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              Submit to Cashier
             </Button>
           </DialogFooter>
         </DialogContent>
