@@ -4,7 +4,8 @@ import { useNavigate, useParams } from 'react-router';
 import {
   ArrowLeft, User, FileText, Pill, TestTube, Activity,
   Stethoscope, FileCheck, Droplets, Syringe, DollarSign,
-  Save, Edit3, CheckCircle2, Calendar, Phone, MapPin, Eye
+  Save, Edit3, CheckCircle2, Calendar, Phone, MapPin, Eye,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -16,31 +17,75 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/ta
 import { Separator } from '@/app/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { toast } from 'sonner';
+import { useEMRStore } from '@/app/emr/store/emr-store';
 
 export function DoctorPatientFilePage() {
   const navigate = useNavigate();
   const { patientId } = useParams();
+  const { patients } = useEMRStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Mock patient data
+  // Find patient from EMR store
+  const patient = patients.find(p => p.id === patientId);
+
+  // If patient not found, show error
+  if (!patient) {
+    return (
+      <div className="min-h-screen bg-muted/30 p-6 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/emr/doctor/patients/opd')}
+            className="hover:bg-muted"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to OPD Patients
+          </Button>
+          <Card>
+            <CardContent className="p-12 text-center">
+              <AlertTriangle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold mb-2">Patient Not Found</h2>
+              <p className="text-muted-foreground">
+                The patient with ID {patientId} could not be found in the system.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate age from DOB
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Use actual patient data from EMR store
   const patientData = {
-    id: patientId || '1',
-    fileNo: 'GH-PT-00001',
-    name: 'Aisha Mohammed',
-    age: 28,
-    gender: 'Female',
-    dob: '1995-05-15',
-    phone: '08012345678',
-    address: 'No. 45, Emir Haruna Road, Birnin Kebbi',
-    bloodType: 'O+',
-    allergies: 'Penicillin',
-    chronicConditions: 'None',
+    id: patient.id,
+    fileNo: patient.id,
+    name: patient.fullName,
+    age: patient.age || calculateAge(patient.dateOfBirth),
+    gender: patient.gender,
+    dob: patient.dateOfBirth,
+    phone: patient.phoneNumber,
+    address: patient.address,
+    bloodType: 'O+', // Mock - could be added to patient schema
+    allergies: patient.allergies || 'None recorded',
+    chronicConditions: patient.chronicConditions || 'None recorded',
   };
 
   // State for editable data
   const [editableData, setEditableData] = useState({
-    doctorNotes: 'Patient presents with recurring headaches...',
+    doctorNotes: patient.notes || 'Patient presents with recurring headaches...',
     prescription: 'Paracetamol 500mg - twice daily for 5 days',
     labInvestigation: 'Blood test, CBC completed on 2/8/2026',
     nurseNotes: 'Vital signs stable, patient comfortable',
@@ -228,11 +273,11 @@ export function DoctorPatientFilePage() {
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/emr/doctor/patients/opd')}
             className="hover:bg-muted"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Patients
+            Back to OPD Patients
           </Button>
 
           <div className="flex gap-2">

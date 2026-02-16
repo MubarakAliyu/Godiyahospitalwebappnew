@@ -257,7 +257,7 @@ export function DoctorIPDPatientsPage() {
   // Mock IPD patients data
   const [patients] = useState<IPDPatient[]>([
     {
-      id: '1',
+      id: 'GH-PT-00011',
       fileNo: 'GH-PT-00011',
       name: 'Hauwa Bello',
       age: 52,
@@ -280,7 +280,7 @@ export function DoctorIPDPatientsPage() {
       lastCheckup: new Date(Date.now() - 2 * 3600000).toISOString()
     },
     {
-      id: '2',
+      id: 'GH-PT-00012',
       fileNo: 'GH-PT-00012',
       name: 'Abdullahi Musa',
       age: 68,
@@ -303,7 +303,7 @@ export function DoctorIPDPatientsPage() {
       lastCheckup: new Date(Date.now() - 1 * 3600000).toISOString()
     },
     {
-      id: '3',
+      id: 'GH-PT-00013',
       fileNo: 'GH-PT-00013',
       name: 'Khadija Ibrahim',
       age: 35,
@@ -326,7 +326,7 @@ export function DoctorIPDPatientsPage() {
       lastCheckup: new Date(Date.now() - 4 * 3600000).toISOString()
     },
     {
-      id: '4',
+      id: 'GH-PT-00014',
       fileNo: 'GH-PT-00014',
       name: 'Umar Faruk',
       age: 29,
@@ -349,7 +349,7 @@ export function DoctorIPDPatientsPage() {
       lastCheckup: new Date(Date.now() - 6 * 3600000).toISOString()
     },
     {
-      id: '5',
+      id: 'GH-PT-00015',
       fileNo: 'GH-PT-00015',
       name: 'Maryam Sani',
       age: 44,

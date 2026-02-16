@@ -348,7 +348,7 @@ export function DoctorOPDPatientsPage() {
   // Mock OPD patients data
   const [patients] = useState<OPDPatient[]>([
     {
-      id: '1',
+      id: 'GH-PT-00001',
       fileNo: 'GH-PT-00001',
       name: 'Aisha Mohammed',
       age: 28,
@@ -367,7 +367,7 @@ export function DoctorOPDPatientsPage() {
       }
     },
     {
-      id: '2',
+      id: 'GH-PT-00002',
       fileNo: 'GH-PT-00002',
       name: 'Ibrahim Suleiman',
       age: 45,
@@ -386,7 +386,7 @@ export function DoctorOPDPatientsPage() {
       }
     },
     {
-      id: '3',
+      id: 'GH-PT-00003',
       fileNo: 'GH-PT-00003',
       name: 'Fatima Abdullahi',
       age: 32,
@@ -404,7 +404,7 @@ export function DoctorOPDPatientsPage() {
       }
     },
     {
-      id: '4',
+      id: 'GH-PT-00004',
       fileNo: 'GH-PT-00004',
       name: 'Musa Garba',
       age: 55,
@@ -423,7 +423,7 @@ export function DoctorOPDPatientsPage() {
       }
     },
     {
-      id: '5',
+      id: 'GH-PT-00005',
       fileNo: 'GH-PT-00005',
       name: 'Zainab Usman',
       age: 38,
@@ -441,7 +441,7 @@ export function DoctorOPDPatientsPage() {
       }
     },
     {
-      id: '6',
+      id: 'GH-PT-00006',
       fileNo: 'GH-PT-00006',
       name: 'Yusuf Ahmad',
       age: 42,

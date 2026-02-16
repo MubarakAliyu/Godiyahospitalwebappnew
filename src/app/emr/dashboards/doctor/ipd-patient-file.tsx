@@ -17,27 +17,71 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/ta
 import { Separator } from '@/app/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { toast } from 'sonner';
+import { useEMRStore } from '@/app/emr/store/emr-store';
 
 export function DoctorIPDPatientFilePage() {
   const navigate = useNavigate();
   const { patientId } = useParams();
+  const { patients } = useEMRStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Mock patient data
+  // Find patient from EMR store
+  const patient = patients.find(p => p.id === patientId);
+
+  // If patient not found, show error
+  if (!patient) {
+    return (
+      <div className="min-h-screen bg-muted/30 p-6 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/emr/doctor/patients/ipd')}
+            className="hover:bg-muted"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to IPD Patients
+          </Button>
+          <Card>
+            <CardContent className="p-12 text-center">
+              <AlertTriangle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold mb-2">Patient Not Found</h2>
+              <p className="text-muted-foreground">
+                The patient with ID {patientId} could not be found in the system.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate age from DOB
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Use actual patient data from EMR store
   const patientData = {
-    id: patientId || '1',
-    fileNo: 'GH-PT-00011',
-    name: 'Hauwa Bello',
-    age: 52,
-    gender: 'Female',
-    dob: '1971-03-20',
-    phone: '08011223344',
-    address: 'No. 23, Sokoto Road, Birnin Kebbi',
-    bloodType: 'A+',
-    allergies: 'Sulfa drugs, Aspirin',
-    chronicConditions: 'Hypertension, Diabetes Type 2',
-    ward: 'General Ward A',
+    id: patient.id,
+    fileNo: patient.id,
+    name: patient.fullName,
+    age: patient.age || calculateAge(patient.dateOfBirth),
+    gender: patient.gender,
+    dob: patient.dateOfBirth,
+    phone: patient.phoneNumber,
+    address: patient.address,
+    bloodType: 'A+', // Mock - could be added to patient schema
+    allergies: patient.allergies || 'None recorded',
+    chronicConditions: patient.chronicConditions || 'None recorded',
+    ward: 'General Ward A', // Mock IPD-specific data
     bedNo: 'A-12',
     bedCategory: 'General',
     admissionDate: new Date(Date.now() - 3 * 86400000).toISOString(),
@@ -46,19 +90,19 @@ export function DoctorIPDPatientFilePage() {
     diagnosis: 'Pneumonia with respiratory complications',
     attendingDoctor: 'Dr. Muhammad Bello',
     attendingDoctorPhone: '08099887766',
-    nextOfKin: 'Ibrahim Bello (Son)',
-    nextOfKinPhone: '08033445566',
+    nextOfKin: patient.emergencyContactName || 'Not specified',
+    nextOfKinPhone: patient.emergencyContactPhone || 'Not specified',
     insurance: {
-      provider: 'NHIS',
-      policyNumber: 'NHIS-2024-00123',
-      coverage: 'Full Coverage',
+      provider: patient.isNHIS ? (patient.nhisProvider || 'NHIS') : 'None',
+      policyNumber: patient.nhisNumber || 'N/A',
+      coverage: patient.isNHIS ? 'Full Coverage' : 'None',
       expiryDate: '2025-12-31',
     },
   };
 
   // State for editable data
   const [editableData, setEditableData] = useState({
-    doctorNotes: 'Patient admitted with severe pneumonia. Currently on IV antibiotics. Showing signs of improvement.',
+    doctorNotes: patient.notes || 'Patient admitted with severe pneumonia. Currently on IV antibiotics. Showing signs of improvement.',
     prescription: 'Ceftriaxone 2g IV BD, Azithromycin 500mg OD, Paracetamol 1g PRN for fever',
     labInvestigation: 'Blood Culture - Pending\nChest X-ray - Shows bilateral infiltrates\nCBC - WBC elevated at 15,000',
     nurseNotes: 'Patient vitals stable. Tolerating oral fluids. No respiratory distress noted.',
@@ -252,7 +296,7 @@ export function DoctorIPDPatientFilePage() {
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/emr/doctor/patients/ipd')}
             className="hover:bg-muted"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
