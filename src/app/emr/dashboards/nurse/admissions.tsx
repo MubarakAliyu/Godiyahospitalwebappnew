@@ -37,6 +37,90 @@ import { Label } from '@/app/components/ui/label';
 import { toast } from 'sonner';
 import { useEMRStore } from '@/app/emr/store/emr-store';
 
+// Mock wards and rooms data
+const mockWards = [
+  {
+    id: 'ward-1',
+    name: 'General Ward A',
+    type: 'General Ward',
+    floor: '1st Floor',
+    capacity: 20,
+    fee: 15000,
+  },
+  {
+    id: 'ward-2',
+    name: 'General Ward B',
+    type: 'General Ward',
+    floor: '1st Floor',
+    capacity: 20,
+    fee: 15000,
+  },
+  {
+    id: 'ward-3',
+    name: 'Maternity Ward',
+    type: 'Maternity Ward',
+    floor: '2nd Floor',
+    capacity: 15,
+    fee: 25000,
+  },
+  {
+    id: 'ward-4',
+    name: 'Pediatric Ward',
+    type: 'Pediatric',
+    floor: '2nd Floor',
+    capacity: 12,
+    fee: 20000,
+  },
+  {
+    id: 'ward-5',
+    name: 'Intensive Care Unit',
+    type: 'ICU',
+    floor: '3rd Floor',
+    capacity: 8,
+    fee: 50000,
+  },
+];
+
+const mockRooms: Record<string, Array<{ id: string; number: string; status: 'Available' | 'Reserved' | 'Occupied' }>> = {
+  'ward-1': [
+    { id: 'room-1-1', number: 'A-101', status: 'Available' },
+    { id: 'room-1-2', number: 'A-102', status: 'Available' },
+    { id: 'room-1-3', number: 'A-103', status: 'Occupied' },
+    { id: 'room-1-4', number: 'A-104', status: 'Available' },
+    { id: 'room-1-5', number: 'A-105', status: 'Reserved' },
+    { id: 'room-1-6', number: 'A-106', status: 'Available' },
+    { id: 'room-1-7', number: 'A-107', status: 'Occupied' },
+    { id: 'room-1-8', number: 'A-108', status: 'Available' },
+  ],
+  'ward-2': [
+    { id: 'room-2-1', number: 'B-201', status: 'Available' },
+    { id: 'room-2-2', number: 'B-202', status: 'Occupied' },
+    { id: 'room-2-3', number: 'B-203', status: 'Available' },
+    { id: 'room-2-4', number: 'B-204', status: 'Reserved' },
+    { id: 'room-2-5', number: 'B-205', status: 'Available' },
+    { id: 'room-2-6', number: 'B-206', status: 'Available' },
+  ],
+  'ward-3': [
+    { id: 'room-3-1', number: 'M-301', status: 'Available' },
+    { id: 'room-3-2', number: 'M-302', status: 'Occupied' },
+    { id: 'room-3-3', number: 'M-303', status: 'Available' },
+    { id: 'room-3-4', number: 'M-304', status: 'Available' },
+    { id: 'room-3-5', number: 'M-305', status: 'Reserved' },
+  ],
+  'ward-4': [
+    { id: 'room-4-1', number: 'P-401', status: 'Available' },
+    { id: 'room-4-2', number: 'P-402', status: 'Available' },
+    { id: 'room-4-3', number: 'P-403', status: 'Occupied' },
+    { id: 'room-4-4', number: 'P-404', status: 'Available' },
+  ],
+  'ward-5': [
+    { id: 'room-5-1', number: 'ICU-501', status: 'Available' },
+    { id: 'room-5-2', number: 'ICU-502', status: 'Occupied' },
+    { id: 'room-5-3', number: 'ICU-503', status: 'Available' },
+    { id: 'room-5-4', number: 'ICU-504', status: 'Reserved' },
+  ],
+};
+
 // Mock admission requests data
 const mockAdmissionRequests = [
   {
@@ -130,9 +214,15 @@ export function NurseAdmissions() {
   // Modal states
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<typeof mockAdmissionRequests[0] | null>(null);
   const [approvalNotes, setApprovalNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
+  
+  // New states for enhanced admission modal
+  const [selectedWard, setSelectedWard] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('');
+  const [admissionFee, setAdmissionFee] = useState(0);
 
   // Filter requests
   const filteredRequests = useMemo(() => {
@@ -161,20 +251,40 @@ export function NurseAdmissions() {
     setIsRejectModalOpen(true);
   };
 
+  const handleViewClick = (request: typeof mockAdmissionRequests[0]) => {
+    setSelectedRequest(request);
+    setIsViewModalOpen(true);
+  };
+
   const confirmApprove = () => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !selectedWard || !selectedRoom) return;
+    
+    const ward = mockWards.find(w => w.id === selectedWard);
+    const room = mockRooms[selectedWard]?.find(r => r.id === selectedRoom);
     
     setRequests((prev) =>
       prev.map((req) =>
-        req.id === selectedRequest.id ? { ...req, status: 'Approved' } : req
+        req.id === selectedRequest.id ? {
+          ...req,
+          status: 'Approved',
+          approvedWardId: selectedWard,
+          approvedWardName: ward?.name || '',
+          approvedRoomId: selectedRoom,
+          approvedRoomNumber: room?.number || '',
+          approvedFee: admissionFee,
+          approvedDate: new Date().toISOString(),
+        } : req
       )
     );
     toast.success('Admission request approved successfully', {
-      description: `${selectedRequest.patientName} has been approved for admission.`,
+      description: `${selectedRequest.patientName} has been approved for ${room?.number} in ${ward?.name}.`,
     });
     setIsApproveModalOpen(false);
     setSelectedRequest(null);
     setApprovalNotes('');
+    setSelectedWard('');
+    setSelectedRoom('');
+    setAdmissionFee(0);
   };
 
   const confirmReject = () => {
@@ -470,7 +580,7 @@ export function NurseAdmissions() {
                               </Button>
                             </>
                           ) : (
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" onClick={() => handleViewClick(request)}>
                               <Eye className="w-4 h-4 mr-1" />
                               View
                             </Button>
@@ -488,7 +598,7 @@ export function NurseAdmissions() {
 
       {/* Approve Modal */}
       <Dialog open={isApproveModalOpen} onOpenChange={setIsApproveModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-3 rounded-full bg-green-100">
@@ -497,43 +607,194 @@ export function NurseAdmissions() {
               <div>
                 <DialogTitle className="text-xl">Approve Admission Request</DialogTitle>
                 <DialogDescription className="text-sm mt-1">
-                  Confirm approval for {selectedRequest?.patientName}
+                  Select ward and room for {selectedRequest?.patientName}
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
           
-          <div className="py-4 space-y-4">
-            {/* Request Details */}
-            <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Request ID:</span>
-                <span className="font-semibold">{selectedRequest?.id}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Patient:</span>
-                <span className="font-semibold">{selectedRequest?.patientName}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Diagnosis:</span>
-                <span className="font-semibold">{selectedRequest?.diagnosis}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Requested By:</span>
-                <span className="font-semibold">{selectedRequest?.doctor}</span>
+          <div className="py-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+            {/* Patient Details */}
+            <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+              <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Patient Details
+              </h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Request ID:</span>
+                  <span className="font-semibold">{selectedRequest?.id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Patient ID:</span>
+                  <span className="font-semibold">{selectedRequest?.patientId}</span>
+                </div>
+                <div className="flex justify-between col-span-2">
+                  <span className="text-muted-foreground">Patient:</span>
+                  <span className="font-semibold">{selectedRequest?.patientName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Age / Gender:</span>
+                  <span className="font-semibold">{selectedRequest?.age}y, {selectedRequest?.gender}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Phone:</span>
+                  <span className="font-semibold">{selectedRequest?.phone}</span>
+                </div>
+                <div className="flex justify-between col-span-2">
+                  <span className="text-muted-foreground">Diagnosis:</span>
+                  <span className="font-semibold">{selectedRequest?.diagnosis}</span>
+                </div>
+                <div className="flex justify-between col-span-2">
+                  <span className="text-muted-foreground">Requested By:</span>
+                  <span className="font-semibold">{selectedRequest?.doctor}</span>
+                </div>
               </div>
             </div>
-            
-            <p className="text-sm text-center text-muted-foreground">
-              Are you sure you want to approve this admission request?
-            </p>
+
+            {/* Ward Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="ward-select" className="flex items-center gap-2 text-sm font-semibold">
+                <Building2 className="w-4 h-4 text-primary" />
+                Select Ward
+              </Label>
+              <Select 
+                value={selectedWard} 
+                onValueChange={(value) => {
+                  setSelectedWard(value);
+                  setSelectedRoom('');
+                  const ward = mockWards.find(w => w.id === value);
+                  setAdmissionFee(ward?.fee || 0);
+                }}
+              >
+                <SelectTrigger id="ward-select">
+                  <SelectValue placeholder="Choose a ward..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockWards.map((ward) => (
+                    <SelectItem key={ward.id} value={ward.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{ward.name}</span>
+                        <span className="text-xs text-muted-foreground ml-4">({ward.floor})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Room Grid Viewer */}
+            {selectedWard && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2 text-sm font-semibold">
+                    <Bed className="w-4 h-4 text-primary" />
+                    Select Room
+                  </Label>
+                  {/* Occupancy Indicator */}
+                  <div className="flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded bg-green-500"></div>
+                      <span>Available</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded bg-yellow-500"></div>
+                      <span>Reserved</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded bg-red-500"></div>
+                      <span>Occupied</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Room Grid */}
+                <div className="grid grid-cols-4 gap-2 p-4 border rounded-lg bg-muted/30">
+                  {mockRooms[selectedWard]?.map((room) => (
+                    <motion.button
+                      key={room.id}
+                      type="button"
+                      whileHover={{ scale: room.status === 'Available' ? 1.05 : 1 }}
+                      whileTap={{ scale: room.status === 'Available' ? 0.95 : 1 }}
+                      onClick={() => room.status === 'Available' && setSelectedRoom(room.id)}
+                      disabled={room.status !== 'Available'}
+                      className={`
+                        p-3 rounded-lg border-2 transition-all text-sm font-semibold
+                        ${room.status === 'Available' && selectedRoom !== room.id ? 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200 cursor-pointer' : ''}
+                        ${room.status === 'Available' && selectedRoom === room.id ? 'bg-green-500 border-green-600 text-white ring-2 ring-green-400' : ''}
+                        ${room.status === 'Reserved' ? 'bg-yellow-100 border-yellow-300 text-yellow-800 cursor-not-allowed opacity-60' : ''}
+                        ${room.status === 'Occupied' ? 'bg-red-100 border-red-300 text-red-800 cursor-not-allowed opacity-60' : ''}
+                      `}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <Bed className="w-4 h-4" />
+                        <span>{room.number}</span>
+                        {selectedRoom === room.id && (
+                          <Check className="w-3 h-3" />
+                        )}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Fee Display */}
+            {selectedWard && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="p-4 rounded-lg bg-emerald-50 border border-emerald-200"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-emerald-600" />
+                    <span className="text-sm font-medium text-emerald-900">Admission Fee</span>
+                  </div>
+                  <span className="text-2xl font-bold text-emerald-700">
+                    ₦{admissionFee.toLocaleString()}
+                  </span>
+                </div>
+                <p className="text-xs text-emerald-700 mt-2">
+                  {mockWards.find(w => w.id === selectedWard)?.name} • {mockWards.find(w => w.id === selectedWard)?.floor}
+                </p>
+              </motion.div>
+            )}
+
+            {/* Instructions */}
+            {!selectedWard && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-blue-900">
+                  Please select a ward to view available rooms.
+                </p>
+              </div>
+            )}
+
+            {selectedWard && !selectedRoom && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-orange-50 border border-orange-200">
+                <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-orange-900">
+                  Please select an available room (green) to proceed with admission.
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => setIsApproveModalOpen(false)}
+              onClick={() => {
+                setIsApproveModalOpen(false);
+                setSelectedWard('');
+                setSelectedRoom('');
+                setAdmissionFee(0);
+              }}
             >
               Cancel
             </Button>
@@ -541,9 +802,10 @@ export function NurseAdmissions() {
               type="button"
               className="bg-green-600 hover:bg-green-700"
               onClick={confirmApprove}
+              disabled={!selectedWard || !selectedRoom}
             >
               <Check className="w-4 h-4 mr-2" />
-              Approve Request
+              Confirm Admission
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -623,6 +885,165 @@ export function NurseAdmissions() {
             >
               <X className="w-4 h-4 mr-2" />
               Reject Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`p-3 rounded-full ${selectedRequest?.status === 'Approved' ? 'bg-green-100' : selectedRequest?.status === 'Rejected' ? 'bg-red-100' : 'bg-blue-100'}`}>
+                <Eye className={`w-6 h-6 ${selectedRequest?.status === 'Approved' ? 'text-green-600' : selectedRequest?.status === 'Rejected' ? 'text-red-600' : 'text-blue-600'}`} />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">View Admission Request</DialogTitle>
+                <DialogDescription className="text-sm mt-1">
+                  Detailed information about the admission request
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+            {/* Request Details */}
+            <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+              <h3 className="text-sm font-semibold text-blue-900 mb-2">Request Information</h3>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Request ID:</span>
+                <span className="font-semibold">{selectedRequest?.id}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Patient ID:</span>
+                <span className="font-semibold">{selectedRequest?.patientId}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Patient:</span>
+                <span className="font-semibold">{selectedRequest?.patientName}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Age / Gender:</span>
+                <span className="font-semibold">{selectedRequest?.age}y, {selectedRequest?.gender}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Phone:</span>
+                <span className="font-semibold">{selectedRequest?.phone}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Diagnosis:</span>
+                <span className="font-semibold">{selectedRequest?.diagnosis}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Requested By:</span>
+                <span className="font-semibold">{selectedRequest?.doctor}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Ward Type:</span>
+                <span className="font-semibold">{selectedRequest?.wardType}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Bed Category:</span>
+                <span className="font-semibold">{selectedRequest?.bedCategory}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Urgency:</span>
+                <span className="font-semibold">{selectedRequest?.urgency}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Status:</span>
+                {selectedRequest && getStatusBadge(selectedRequest.status)}
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Date & Time:</span>
+                <span className="font-semibold">{selectedRequest?.requestedDate} {selectedRequest?.requestedTime}</span>
+              </div>
+            </div>
+
+            {/* Approval Details - Only show if approved */}
+            {selectedRequest?.status === 'Approved' && 'approvedWardName' in selectedRequest && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-3"
+              >
+                <div className="p-4 rounded-lg bg-green-50 border border-green-200 space-y-3">
+                  <h3 className="text-sm font-semibold text-green-900 mb-2 flex items-center gap-2">
+                    <Check className="w-4 h-4" />
+                    Approval Details
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground text-xs mb-1">Assigned Ward</span>
+                      <div className="flex items-center gap-2 font-semibold text-green-900">
+                        <Building2 className="w-4 h-4" />
+                        {(selectedRequest as any).approvedWardName}
+                      </div>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground text-xs mb-1">Room Number</span>
+                      <div className="flex items-center gap-2 font-semibold text-green-900">
+                        <Bed className="w-4 h-4" />
+                        {(selectedRequest as any).approvedRoomNumber}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-green-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Admission Fee:</span>
+                      <span className="text-lg font-bold text-green-700">
+                        ₦{((selectedRequest as any).approvedFee || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {(selectedRequest as any).approvedDate && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-green-200">
+                      <Calendar className="w-3 h-3" />
+                      <span>
+                        Approved on {new Date((selectedRequest as any).approvedDate).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Success Message */}
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+                  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-green-900">
+                    This admission request has been approved. The patient can now be admitted to {(selectedRequest as any).approvedRoomNumber} in {(selectedRequest as any).approvedWardName}.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Rejection Info */}
+            {selectedRequest?.status === 'Rejected' && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+                <X className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-red-900">
+                  This admission request has been rejected and cannot be processed.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsViewModalOpen(false)}
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

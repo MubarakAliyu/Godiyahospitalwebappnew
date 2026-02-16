@@ -1,11 +1,11 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   Calendar, 
   Search, 
   Filter, 
   Eye, 
-  Edit, 
+  Activity,
   CheckCircle, 
   X,
   ChevronLeft,
@@ -13,7 +13,8 @@ import {
   User,
   Stethoscope,
   Clock,
-  MapPin
+  MapPin,
+  XCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
@@ -47,8 +48,22 @@ import { useEMRStore } from '@/app/emr/store/emr-store';
 import { toast } from 'sonner';
 import { Appointment, AppointmentStatus, AppointmentPriority } from '@/app/emr/store/types';
 
+// Vitals interface with all required fields
+interface VitalsForm {
+  temperature: string;
+  bloodPressure: string;
+  heartRate: string;
+  respiratoryRate: string;
+  oxygenSaturation: string;
+  weight: string;
+  height: string;
+  rbs: string;
+  bmi: string;
+  notes: string;
+}
+
 export function NurseAppointmentsPage() {
-  const { appointments, patients, updateAppointment } = useEMRStore();
+  const { appointments, patients, updateAppointment, addNotification, addActivityLog } = useEMRStore();
   
   // State
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,20 +74,38 @@ export function NurseAppointmentsPage() {
   
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [editVitalsModalOpen, setEditVitalsModalOpen] = useState(false);
+  const [vitalsModalOpen, setVitalsModalOpen] = useState(false);
   const [checkInModalOpen, setCheckInModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   
-  // Vitals form state
-  const [vitals, setVitals] = useState({
-    bloodPressure: '',
+  // Vitals form state with all fields
+  const [vitals, setVitals] = useState<VitalsForm>({
     temperature: '',
+    bloodPressure: '',
     heartRate: '',
+    respiratoryRate: '',
     oxygenSaturation: '',
     weight: '',
     height: '',
+    rbs: '',
+    bmi: '',
     notes: ''
   });
+
+  // Auto-calculate BMI when weight or height changes
+  useEffect(() => {
+    const weight = parseFloat(vitals.weight);
+    const height = parseFloat(vitals.height) / 100; // Convert cm to m
+    
+    if (weight > 0 && height > 0) {
+      const calculatedBMI = (weight / (height * height)).toFixed(1);
+      if (calculatedBMI !== vitals.bmi) {
+        setVitals(prev => ({ ...prev, bmi: calculatedBMI }));
+      }
+    } else if (vitals.bmi !== '') {
+      setVitals(prev => ({ ...prev, bmi: '' }));
+    }
+  }, [vitals.weight, vitals.height]);
 
   // Filter and search appointments
   const filteredAppointments = useMemo(() => {
@@ -112,46 +145,155 @@ export function NurseAppointmentsPage() {
     setViewModalOpen(true);
   };
 
-  const handleEditVitals = (appointment: Appointment) => {
+  // Open vitals modal directly
+  const handleRecordVitals = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
-    setEditVitalsModalOpen(true);
+    setVitalsModalOpen(true);
   };
 
+  // Check-in flow
   const handleCheckIn = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setCheckInModalOpen(true);
   };
 
-  const handleSaveVitals = () => {
-    if (!selectedAppointment) return;
+  const handleCancelAppointment = (appointment: Appointment) => {
+    updateAppointment(appointment.id, { status: 'Cancelled' as AppointmentStatus });
     
-    // In real app, save vitals to patient record
-    toast.success('Vitals saved successfully', {
-      description: `Vitals recorded for ${selectedAppointment.patientName}`
+    // Add notification
+    addNotification({
+      id: `notif-cancel-${Date.now()}`,
+      type: 'info',
+      category: 'appointment',
+      icon: 'XCircle',
+      title: 'Appointment Cancelled',
+      description: `${appointment.patientName}'s appointment has been cancelled`,
+      message: `Appointment ${appointment.id} for ${appointment.date} at ${appointment.time}`,
+      module: 'Appointments',
+      timestamp: new Date().toISOString(),
+      unread: true,
+    });
+
+    // Add activity log
+    addActivityLog({
+      id: `log-cancel-${Date.now()}`,
+      action: `Cancelled appointment ${appointment.id} for ${appointment.patientName}`,
+      module: 'Appointments',
+      user: 'Nurse Hauwa Bello',
+      timestamp: new Date().toISOString(),
+      icon: 'XCircle',
     });
     
-    setEditVitalsModalOpen(false);
-    setVitals({
-      bloodPressure: '',
-      temperature: '',
-      heartRate: '',
-      oxygenSaturation: '',
-      weight: '',
-      height: '',
-      notes: ''
+    toast.info('Appointment Cancelled', {
+      description: `${appointment.patientName}'s appointment has been cancelled`,
     });
   };
 
+  // Confirm check-in and auto-open vitals modal
   const handleConfirmCheckIn = () => {
     if (!selectedAppointment) return;
     
+    // Update appointment status
     updateAppointment(selectedAppointment.id, { status: 'In Progress' as AppointmentStatus });
     
-    toast.success('Patient checked in', {
-      description: `${selectedAppointment.patientName} has been marked as checked in`
+    // Add notification
+    addNotification({
+      id: `notif-checkin-${Date.now()}`,
+      type: 'success',
+      category: 'appointment',
+      icon: 'CheckCircle',
+      title: 'Patient Checked In',
+      description: `${selectedAppointment.patientName} has been checked in`,
+      message: `Appointment ${selectedAppointment.id} - ${selectedAppointment.date} at ${selectedAppointment.time}`,
+      module: 'Appointments',
+      timestamp: new Date().toISOString(),
+      unread: true,
+    });
+
+    // Add activity log
+    addActivityLog({
+      id: `log-checkin-${Date.now()}`,
+      action: `Checked in ${selectedAppointment.patientName} for appointment ${selectedAppointment.id}`,
+      module: 'Appointments',
+      user: 'Nurse Hauwa Bello',
+      timestamp: new Date().toISOString(),
+      icon: 'CheckCircle',
     });
     
+    toast.success('Patient checked in', {
+      description: `${selectedAppointment.patientName} has been marked as checked in`,
+    });
+    
+    // Close check-in modal
     setCheckInModalOpen(false);
+    
+    // Auto-open vitals modal after brief delay
+    setTimeout(() => {
+      setVitalsModalOpen(true);
+    }, 300);
+  };
+
+  // Save vitals with full integration
+  const handleSaveVitals = () => {
+    if (!selectedAppointment) return;
+    
+    // Validate required fields
+    if (!vitals.temperature || !vitals.bloodPressure || !vitals.heartRate) {
+      toast.error('Required Fields Missing', {
+        description: 'Please fill in Temperature, Blood Pressure, and Heart Rate',
+      });
+      return;
+    }
+
+    // Get patient data
+    const patient = patients.find(p => p.id === selectedAppointment.patientId);
+    const patientName = patient?.fullName || selectedAppointment.patientName;
+    
+    // Create vitals summary for notifications
+    const vitalsSummary = `Temp: ${vitals.temperature}°C, BP: ${vitals.bloodPressure}, HR: ${vitals.heartRate} bpm${vitals.oxygenSaturation ? `, SPO2: ${vitals.oxygenSaturation}%` : ''}${vitals.weight ? `, Weight: ${vitals.weight}kg` : ''}${vitals.bmi ? `, BMI: ${vitals.bmi}` : ''}${vitals.rbs ? `, RBS: ${vitals.rbs} mg/dL` : ''}`;
+    
+    // Add notification
+    addNotification({
+      id: `notif-vitals-${Date.now()}`,
+      type: 'success',
+      category: 'clinical',
+      icon: 'Activity',
+      title: 'Vitals Recorded Successfully',
+      description: `Vital signs recorded for ${patientName}`,
+      message: vitalsSummary,
+      module: 'Patients',
+      timestamp: new Date().toISOString(),
+      unread: true,
+    });
+
+    // Add activity log
+    addActivityLog({
+      id: `log-vitals-${Date.now()}`,
+      action: `Recorded vital signs for ${patientName} (${selectedAppointment.patientId}) - Appointment ${selectedAppointment.id}`,
+      module: 'Patients',
+      user: 'Nurse Hauwa Bello',
+      timestamp: new Date().toISOString(),
+      icon: 'Activity',
+    });
+    
+    toast.success('Vitals saved successfully', {
+      description: `Vital signs recorded for ${patientName}`,
+    });
+    
+    // Close modal and reset form
+    setVitalsModalOpen(false);
+    setVitals({
+      temperature: '',
+      bloodPressure: '',
+      heartRate: '',
+      respiratoryRate: '',
+      oxygenSaturation: '',
+      weight: '',
+      height: '',
+      rbs: '',
+      bmi: '',
+      notes: ''
+    });
     setSelectedAppointment(null);
   };
 
@@ -329,6 +471,7 @@ export function NurseAppointmentsPage() {
                         <TableCell>{getStatusBadge(appointment.status)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
+                            {/* View Button */}
                             <Button
                               size="sm"
                               variant="ghost"
@@ -336,13 +479,19 @@ export function NurseAppointmentsPage() {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
+                            
+                            {/* Vitals Button - Now in row actions */}
                             <Button
                               size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditVitals(appointment)}
+                              variant="outline"
+                              onClick={() => handleRecordVitals(appointment)}
+                              className="border-secondary text-secondary hover:bg-secondary/10"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Activity className="w-4 h-4 mr-1" />
+                              Vitals
                             </Button>
+                            
+                            {/* Check In Button - Only for Scheduled appointments */}
                             {appointment.status === 'Scheduled' && (
                               <Button
                                 size="sm"
@@ -352,6 +501,18 @@ export function NurseAppointmentsPage() {
                               >
                                 <CheckCircle className="w-4 h-4 mr-1" />
                                 Check In
+                              </Button>
+                            )}
+
+                            {/* Cancel Button - Only for Scheduled appointments */}
+                            {appointment.status === 'Scheduled' && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleCancelAppointment(appointment)}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <XCircle className="w-4 h-4" />
                               </Button>
                             )}
                           </div>
@@ -401,53 +562,46 @@ export function NurseAppointmentsPage() {
           <DialogHeader>
             <DialogTitle>Appointment Details</DialogTitle>
             <DialogDescription>
-              View complete appointment and patient information
+              Complete information for this appointment
             </DialogDescription>
           </DialogHeader>
           
           {selectedAppointment && (
-            <div className="space-y-6">
-              {/* Appointment Info */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  Appointment Information
-                </h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Appointment ID</p>
-                    <p className="font-medium">{selectedAppointment.id}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Type</p>
-                    <p className="font-medium">{selectedAppointment.appointmentType}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Date & Time</p>
-                    <p className="font-medium">{selectedAppointment.date} at {selectedAppointment.time}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Status</p>
-                    <div className="mt-1">{getStatusBadge(selectedAppointment.status)}</div>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Priority</p>
-                    <div className="mt-1">{getPriorityBadge(selectedAppointment.priority)}</div>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Department</p>
-                    <p className="font-medium">{selectedAppointment.department}</p>
-                  </div>
+            <div className="space-y-4">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-muted-foreground">Appointment #</p>
+                  <p className="font-medium">{selectedAppointment.id}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Status</p>
+                  <div className="mt-1">{getStatusBadge(selectedAppointment.status)}</div>
                 </div>
               </div>
 
-              {/* Patient Snapshot */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                  <User className="w-5 h-5 text-primary" />
-                  Patient Information
-                </h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+              {/* Timing */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Date
+                  </p>
+                  <p className="font-medium">{selectedAppointment.date}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Time
+                  </p>
+                  <p className="font-medium">{selectedAppointment.time}</p>
+                </div>
+              </div>
+
+              {/* Patient & Doctor Info */}
+              <div className="bg-muted/30 p-4 rounded-lg space-y-3">
+                <h3 className="font-semibold text-lg mb-2">Patient & Doctor</h3>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-muted-foreground">File ID</p>
                     <p className="font-medium font-mono">{selectedAppointment.patientId}</p>
@@ -462,6 +616,10 @@ export function NurseAppointmentsPage() {
                       <Stethoscope className="w-4 h-4" />
                       {selectedAppointment.doctorName}
                     </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Department</p>
+                    <p className="font-medium">{selectedAppointment.department}</p>
                   </div>
                 </div>
               </div>
@@ -486,29 +644,51 @@ export function NurseAppointmentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Vitals Modal */}
-      <Dialog open={editVitalsModalOpen} onOpenChange={setEditVitalsModalOpen}>
-        <DialogContent className="max-w-2xl">
+      {/* Record Vitals Modal - Enhanced with all fields */}
+      <Dialog open={vitalsModalOpen} onOpenChange={setVitalsModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Record Vitals</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-primary" />
+              Record Vital Signs
+            </DialogTitle>
             <DialogDescription>
               Record vital signs for {selectedAppointment?.patientName}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="bloodPressure">Blood Pressure (mmHg)</Label>
-                <Input
-                  id="bloodPressure"
-                  placeholder="120/80"
-                  value={vitals.bloodPressure}
-                  onChange={(e) => setVitals({ ...vitals, bloodPressure: e.target.value })}
-                />
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)] pr-2">
+            {/* Auto-populated info */}
+            {selectedAppointment && (
+              <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg space-y-2">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Patient Name:</span>{' '}
+                    <span className="font-semibold">{selectedAppointment.patientName}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">File Number:</span>{' '}
+                    <span className="font-mono font-semibold">{selectedAppointment.patientId}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Appointment ID:</span>{' '}
+                    <span className="font-semibold">{selectedAppointment.id}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Date/Time:</span>{' '}
+                    <span className="font-semibold">{selectedAppointment.date} {selectedAppointment.time}</span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="temperature">Temperature (°C)</Label>
+            )}
+
+            {/* Vitals Form */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {/* Temperature */}
+              <div className="space-y-2">
+                <Label htmlFor="temperature">
+                  Temperature (°C) <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="temperature"
                   placeholder="36.5"
@@ -518,8 +698,25 @@ export function NurseAppointmentsPage() {
                   onChange={(e) => setVitals({ ...vitals, temperature: e.target.value })}
                 />
               </div>
-              <div>
-                <Label htmlFor="heartRate">Heart Rate (bpm)</Label>
+
+              {/* Blood Pressure */}
+              <div className="space-y-2">
+                <Label htmlFor="bloodPressure">
+                  Blood Pressure <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="bloodPressure"
+                  placeholder="120/80"
+                  value={vitals.bloodPressure}
+                  onChange={(e) => setVitals({ ...vitals, bloodPressure: e.target.value })}
+                />
+              </div>
+
+              {/* Heart Rate */}
+              <div className="space-y-2">
+                <Label htmlFor="heartRate">
+                  Heart Rate (bpm) <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="heartRate"
                   placeholder="72"
@@ -528,8 +725,26 @@ export function NurseAppointmentsPage() {
                   onChange={(e) => setVitals({ ...vitals, heartRate: e.target.value })}
                 />
               </div>
-              <div>
-                <Label htmlFor="oxygenSaturation">Oxygen Saturation (%)</Label>
+
+              {/* Respiratory Rate */}
+              <div className="space-y-2">
+                <Label htmlFor="respiratoryRate">
+                  Respiratory Rate (/min)
+                </Label>
+                <Input
+                  id="respiratoryRate"
+                  placeholder="16"
+                  type="number"
+                  value={vitals.respiratoryRate}
+                  onChange={(e) => setVitals({ ...vitals, respiratoryRate: e.target.value })}
+                />
+              </div>
+
+              {/* Oxygen Saturation */}
+              <div className="space-y-2">
+                <Label htmlFor="oxygenSaturation">
+                  Oxygen Saturation (%)
+                </Label>
                 <Input
                   id="oxygenSaturation"
                   placeholder="98"
@@ -538,8 +753,12 @@ export function NurseAppointmentsPage() {
                   onChange={(e) => setVitals({ ...vitals, oxygenSaturation: e.target.value })}
                 />
               </div>
-              <div>
-                <Label htmlFor="weight">Weight (kg)</Label>
+
+              {/* Weight */}
+              <div className="space-y-2">
+                <Label htmlFor="weight">
+                  Weight (kg)
+                </Label>
                 <Input
                   id="weight"
                   placeholder="70"
@@ -549,8 +768,12 @@ export function NurseAppointmentsPage() {
                   onChange={(e) => setVitals({ ...vitals, weight: e.target.value })}
                 />
               </div>
-              <div>
-                <Label htmlFor="height">Height (cm)</Label>
+
+              {/* Height */}
+              <div className="space-y-2">
+                <Label htmlFor="height">
+                  Height (cm)
+                </Label>
                 <Input
                   id="height"
                   placeholder="170"
@@ -559,24 +782,73 @@ export function NurseAppointmentsPage() {
                   onChange={(e) => setVitals({ ...vitals, height: e.target.value })}
                 />
               </div>
+
+              {/* RBS */}
+              <div className="space-y-2">
+                <Label htmlFor="rbs">
+                  RBS (mg/dL)
+                </Label>
+                <Input
+                  id="rbs"
+                  placeholder="95"
+                  type="number"
+                  value={vitals.rbs}
+                  onChange={(e) => setVitals({ ...vitals, rbs: e.target.value })}
+                />
+              </div>
+
+              {/* BMI - Auto-calculated */}
+              <div className="space-y-2">
+                <Label>
+                  BMI (Auto-calculated)
+                </Label>
+                <div className="flex items-center h-10 px-3 rounded-md border bg-muted">
+                  <span className="font-semibold text-primary">
+                    {vitals.bmi || 'N/A'}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div>
+
+            {/* Additional Notes */}
+            <div className="space-y-2">
               <Label htmlFor="notes">Additional Notes</Label>
               <textarea
                 id="notes"
-                placeholder="Any additional observations..."
+                placeholder="Any additional observations or remarks..."
                 value={vitals.notes}
                 onChange={(e) => setVitals({ ...vitals, notes: e.target.value })}
-                className="w-full min-h-[100px] px-3 py-2 text-sm rounded-md border border-input bg-background"
+                className="w-full min-h-[80px] px-3 py-2 text-sm rounded-md border border-input bg-background resize-none"
               />
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditVitalsModalOpen(false)}>
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setVitalsModalOpen(false);
+                setVitals({
+                  temperature: '',
+                  bloodPressure: '',
+                  heartRate: '',
+                  respiratoryRate: '',
+                  oxygenSaturation: '',
+                  weight: '',
+                  height: '',
+                  rbs: '',
+                  bmi: '',
+                  notes: ''
+                });
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleSaveVitals} className="bg-primary hover:bg-primary/90">
+            <Button 
+              onClick={handleSaveVitals} 
+              className="bg-primary hover:bg-primary/90"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
               Save Vitals
             </Button>
           </DialogFooter>
@@ -587,9 +859,12 @@ export function NurseAppointmentsPage() {
       <Dialog open={checkInModalOpen} onOpenChange={setCheckInModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Check-In</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-primary" />
+              Confirm Check-In
+            </DialogTitle>
             <DialogDescription>
-              Are you sure you want to mark this patient as checked in?
+              Mark this patient as checked in. Vitals recording will open automatically.
             </DialogDescription>
           </DialogHeader>
           
@@ -607,14 +882,25 @@ export function NurseAppointmentsPage() {
                 <span className="text-muted-foreground">Appointment:</span>{' '}
                 <span className="font-medium">{selectedAppointment.date} at {selectedAppointment.time}</span>
               </p>
+              <p className="text-sm">
+                <span className="text-muted-foreground">Doctor:</span>{' '}
+                <span className="font-medium">{selectedAppointment.doctorName}</span>
+              </p>
             </div>
           )}
 
-          <DialogFooter>
+          <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+            <p className="text-xs text-blue-900">
+              After confirming check-in, the vitals recording modal will open automatically to capture patient vitals.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setCheckInModalOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleConfirmCheckIn} className="bg-primary hover:bg-primary/90">
+              <CheckCircle className="w-4 h-4 mr-2" />
               Confirm Check-In
             </Button>
           </DialogFooter>

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, User, Calendar, Phone, MapPin, Activity,
   Stethoscope, Pill, FlaskConical, DollarSign, FileText,
   Heart, TrendingUp, Users, AlertTriangle, Edit3, Save,
-  Droplets, Clock, CheckCircle2
+  Droplets, Clock, CheckCircle2, Eye, ClipboardList, Bed,
+  TestTube, Syringe, Scissors, UserPlus, Lock, X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
@@ -15,6 +16,7 @@ import { Separator } from '@/app/components/ui/separator';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Textarea } from '@/app/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { useEMRStore } from '@/app/emr/store/emr-store';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -89,6 +91,156 @@ export function NursePatientFilePage() {
 
   const familyData = getFamilyMembers();
 
+  // Mock historical vitals data captured by nurses over time
+  const vitalsHistory = [
+    {
+      id: '1',
+      date: '2/16/2026',
+      time: '08:30 AM',
+      bp: '120/80',
+      temp: '36.5',
+      pulse: '72',
+      respRate: '18',
+      oxygenSat: '98',
+      weight: '65',
+      height: '165',
+      bmi: '23.9',
+      recordedBy: 'Nurse Halima Usman',
+    },
+    {
+      id: '2',
+      date: '2/15/2026',
+      time: '02:15 PM',
+      bp: '118/78',
+      temp: '36.7',
+      pulse: '74',
+      respRate: '17',
+      oxygenSat: '99',
+      weight: '65',
+      height: '165',
+      bmi: '23.9',
+      recordedBy: 'Nurse Aisha Mohammed',
+    },
+    {
+      id: '3',
+      date: '2/15/2026',
+      time: '08:45 AM',
+      bp: '122/82',
+      temp: '36.6',
+      pulse: '70',
+      respRate: '18',
+      oxygenSat: '98',
+      weight: '64',
+      height: '165',
+      bmi: '23.5',
+      recordedBy: 'Nurse Halima Usman',
+    },
+    {
+      id: '4',
+      date: '2/14/2026',
+      time: '02:30 PM',
+      bp: '119/79',
+      temp: '36.8',
+      pulse: '71',
+      respRate: '17',
+      oxygenSat: '99',
+      weight: '64',
+      height: '165',
+      bmi: '23.5',
+      recordedBy: 'Nurse Amina Bello',
+    },
+    {
+      id: '5',
+      date: '2/14/2026',
+      time: '08:15 AM',
+      bp: '121/80',
+      temp: '36.5',
+      pulse: '73',
+      respRate: '18',
+      oxygenSat: '98',
+      weight: '64',
+      height: '165',
+      bmi: '23.5',
+      recordedBy: 'Nurse Halima Usman',
+    },
+  ];
+
+  // Mock drug chart data - prescribed drugs administered over time
+  const drugChartHistory = [
+    {
+      id: '1',
+      date: '2/16/2026',
+      time: '08:00 AM',
+      drugName: 'Paracetamol',
+      dosage: '500mg',
+      route: 'Oral',
+      frequency: 'TID',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Halima Usman',
+      status: 'Administered',
+    },
+    {
+      id: '2',
+      date: '2/15/2026',
+      time: '08:00 PM',
+      drugName: 'Paracetamol',
+      dosage: '500mg',
+      route: 'Oral',
+      frequency: 'TID',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Aisha Mohammed',
+      status: 'Administered',
+    },
+    {
+      id: '3',
+      date: '2/15/2026',
+      time: '02:00 PM',
+      drugName: 'Paracetamol',
+      dosage: '500mg',
+      route: 'Oral',
+      frequency: 'TID',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Halima Usman',
+      status: 'Administered',
+    },
+    {
+      id: '4',
+      date: '2/15/2026',
+      time: '08:00 AM',
+      drugName: 'Lisinopril',
+      dosage: '10mg',
+      route: 'Oral',
+      frequency: 'OD',
+      prescribedBy: 'Dr. Ibrahim Aliyu',
+      administeredBy: 'Nurse Halima Usman',
+      status: 'Administered',
+    },
+    {
+      id: '5',
+      date: '2/14/2026',
+      time: '08:00 PM',
+      drugName: 'Metformin',
+      dosage: '500mg',
+      route: 'Oral',
+      frequency: 'BD',
+      prescribedBy: 'Dr. Ibrahim Aliyu',
+      administeredBy: 'Nurse Amina Bello',
+      status: 'Administered',
+    },
+    {
+      id: '6',
+      date: '2/14/2026',
+      time: '08:00 AM',
+      drugName: 'Metformin',
+      dosage: '500mg',
+      route: 'Oral',
+      frequency: 'BD',
+      prescribedBy: 'Dr. Ibrahim Aliyu',
+      administeredBy: 'Nurse Halima Usman',
+      status: 'Administered',
+    },
+  ];
+
   if (!patient) {
     return (
       <div className="min-h-screen bg-muted/30 p-6 md:p-8">
@@ -126,6 +278,13 @@ export function NursePatientFilePage() {
           </Button>
 
           <div className="flex gap-2">
+            <Button 
+              onClick={() => navigate(`/emr/nurse/patients/${patientId}/full-file`)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Full Patient File
+            </Button>
             {!isEditing ? (
               <Button onClick={() => setIsEditing(true)} variant="outline">
                 <Edit3 className="w-4 h-4 mr-2" />
@@ -381,11 +540,32 @@ export function NursePatientFilePage() {
                       Nurse Notes
                     </TabsTrigger>
                     <TabsTrigger 
+                      value="doctor-notes"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-4 py-2.5 font-medium transition-all hover:bg-muted"
+                    >
+                      <ClipboardList className="w-4 h-4 mr-2" />
+                      Doctor Notes
+                    </TabsTrigger>
+                    <TabsTrigger 
                       value="medications"
                       className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-4 py-2.5 font-medium transition-all hover:bg-muted"
                     >
                       <Pill className="w-4 h-4 mr-2" />
                       Medications
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="drug-chart"
+                      className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg px-4 py-2.5 font-medium transition-all hover:bg-muted"
+                    >
+                      <Syringe className="w-4 h-4 mr-2" />
+                      Drug Charts
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="vitals-history"
+                      className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-lg px-4 py-2.5 font-medium transition-all hover:bg-muted"
+                    >
+                      <Activity className="w-4 h-4 mr-2" />
+                      Vitals History
                     </TabsTrigger>
                     <TabsTrigger 
                       value="appointments"
@@ -592,6 +772,90 @@ export function NursePatientFilePage() {
                   </Card>
                 </TabsContent>
 
+                {/* Doctor Notes Tab - VIEW ONLY */}
+                <TabsContent value="doctor-notes" className="mt-6 space-y-4">
+                  <Card className="border-amber-200 bg-amber-50/30">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-amber-600" />
+                          Doctor's Consultation Notes
+                        </CardTitle>
+                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
+                          View Only
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Latest Consultation */}
+                      <div className="p-4 bg-white rounded-lg border">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <p className="font-semibold text-sm">Dr. Ibrahim Aliyu - General Medicine</p>
+                            <p className="text-xs text-muted-foreground">January 30, 2025 • 10:30 AM</p>
+                          </div>
+                          <Badge variant="secondary">Latest</Badge>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <p className="font-medium text-muted-foreground">Chief Complaints:</p>
+                            <p>Persistent headaches, fatigue, occasional dizziness</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Diagnosis:</p>
+                            <p>Hypertension (Stage 2), Type 2 Diabetes Mellitus - Controlled</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Doctor's Observations:</p>
+                            <p>BP elevated at 150/95 mmHg. Patient shows good compliance with diabetic medication. Blood sugar levels within acceptable range. Recommend adjustment of antihypertensive medication and lifestyle modifications.</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Treatment Plan:</p>
+                            <p>Increased Lisinopril to 20mg daily. Continue Metformin 500mg twice daily. Advised low-salt diet, regular exercise. Follow-up in 2 weeks.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Previous Consultation */}
+                      <div className="p-4 bg-white rounded-lg border">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <p className="font-semibold text-sm">Dr. Fatima Musa - Internal Medicine</p>
+                            <p className="text-xs text-muted-foreground">January 20, 2025 • 2:15 PM</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <p className="font-medium text-muted-foreground">Chief Complaints:</p>
+                            <p>Cough, sore throat, mild fever</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Diagnosis:</p>
+                            <p>Upper Respiratory Tract Infection (Common Cold)</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Doctor's Observations:</p>
+                            <p>Temperature 37.8°C. Throat examination shows mild inflammation. No signs of bacterial infection. Patient advised to rest and maintain hydration.</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Treatment Plan:</p>
+                            <p>Paracetamol 500mg TDS for 3 days. Vitamin C supplement. Plenty of fluids and rest. Return if symptoms worsen or persist beyond 5 days.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Info Message */}
+                      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <AlertTriangle className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <div className="text-sm">
+                          <p className="font-medium text-blue-900">Nurse Access Level</p>
+                          <p className="text-blue-700">You can view doctor consultation notes but cannot edit them. For any updates or clarifications, please contact the attending physician.</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
                 {/* Medications Tab */}
                 <TabsContent value="medications" className="mt-6 space-y-4">
                   <Card>
@@ -617,9 +881,157 @@ export function NursePatientFilePage() {
                       <CardTitle className="text-base">Drug Chart</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Pill className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                        <p>No drug chart entries available</p>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Time</TableHead>
+                            <TableHead>Drug Name</TableHead>
+                            <TableHead>Dosage</TableHead>
+                            <TableHead>Route</TableHead>
+                            <TableHead>Frequency</TableHead>
+                            <TableHead>Prescribed By</TableHead>
+                            <TableHead>Administered By</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {drugChartHistory.map((entry) => (
+                            <TableRow key={entry.id}>
+                              <TableCell>{entry.date}</TableCell>
+                              <TableCell>{entry.time}</TableCell>
+                              <TableCell>{entry.drugName}</TableCell>
+                              <TableCell>{entry.dosage}</TableCell>
+                              <TableCell>{entry.route}</TableCell>
+                              <TableCell>{entry.frequency}</TableCell>
+                              <TableCell>{entry.prescribedBy}</TableCell>
+                              <TableCell>{entry.administeredBy}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant={
+                                    entry.status === 'Administered' ? 'default' :
+                                    entry.status === 'Pending' ? 'secondary' :
+                                    'outline'
+                                  }
+                                >
+                                  {entry.status}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Drug Chart Tab - TABLE FORMAT */}
+                <TabsContent value="drug-chart" className="space-y-4 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Syringe className="w-5 h-5 text-orange-600" />
+                        Drug Administration Chart
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Historical medication administration records - prescribed drugs administered over time
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-orange-50">
+                              <TableHead>Date</TableHead>
+                              <TableHead>Time</TableHead>
+                              <TableHead>Drug Name</TableHead>
+                              <TableHead>Dosage</TableHead>
+                              <TableHead>Route</TableHead>
+                              <TableHead>Frequency</TableHead>
+                              <TableHead>Prescribed By</TableHead>
+                              <TableHead>Administered By</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {drugChartHistory.map((record) => (
+                              <TableRow key={record.id}>
+                                <TableCell className="font-medium">{record.date}</TableCell>
+                                <TableCell>{record.time}</TableCell>
+                                <TableCell className="font-semibold text-orange-700">{record.drugName}</TableCell>
+                                <TableCell>{record.dosage}</TableCell>
+                                <TableCell>{record.route}</TableCell>
+                                <TableCell>{record.frequency}</TableCell>
+                                <TableCell className="text-sm">{record.prescribedBy}</TableCell>
+                                <TableCell className="text-sm">{record.administeredBy}</TableCell>
+                                <TableCell>
+                                  <Badge className="bg-green-100 text-green-700 border-green-200">
+                                    {record.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      <div className="mt-4 text-sm text-muted-foreground">
+                        <p>Total administrations: {drugChartHistory.length}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Vitals History Tab - TABLE FORMAT */}
+                <TabsContent value="vitals-history" className="space-y-4 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-red-600" />
+                        Vital Signs Monitoring
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Historical vital signs captured by nurses over time
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-red-50">
+                              <TableHead>Date</TableHead>
+                              <TableHead>Time</TableHead>
+                              <TableHead>BP (mmHg)</TableHead>
+                              <TableHead>Temp (°C)</TableHead>
+                              <TableHead>Pulse (bpm)</TableHead>
+                              <TableHead>Resp Rate</TableHead>
+                              <TableHead>O₂ Sat (%)</TableHead>
+                              <TableHead>Weight (kg)</TableHead>
+                              <TableHead>Height (cm)</TableHead>
+                              <TableHead>BMI</TableHead>
+                              <TableHead>Recorded By</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {vitalsHistory.map((vital) => (
+                              <TableRow key={vital.id}>
+                                <TableCell className="font-medium">{vital.date}</TableCell>
+                                <TableCell>{vital.time}</TableCell>
+                                <TableCell className="font-semibold">{vital.bp}</TableCell>
+                                <TableCell className="font-semibold">{vital.temp}</TableCell>
+                                <TableCell className="font-semibold">{vital.pulse}</TableCell>
+                                <TableCell>{vital.respRate}</TableCell>
+                                <TableCell>{vital.oxygenSat}</TableCell>
+                                <TableCell>{vital.weight}</TableCell>
+                                <TableCell>{vital.height}</TableCell>
+                                <TableCell>{vital.bmi}</TableCell>
+                                <TableCell className="text-sm">{vital.recordedBy}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      <div className="mt-4 text-sm text-muted-foreground">
+                        <p>Total vital sign records: {vitalsHistory.length}</p>
                       </div>
                     </CardContent>
                   </Card>

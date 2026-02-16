@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import {
   Activity, Search, Eye, Check, X, Filter, Calendar, Clock,
   FileText, AlertCircle, ChevronDown, User, Phone, MapPin,
-  Building2, ArrowRight, Stethoscope
+  Building2, ArrowRight, Stethoscope, Ambulance
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -36,7 +36,7 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
 import { toast } from 'sonner';
 
-// Mock referral requests data
+// Mock referral requests data - Updated with external hospital referrals
 const mockReferrals = [
   {
     id: 'REF-001',
@@ -44,11 +44,15 @@ const mockReferrals = [
     patientName: 'Fatima Garba',
     age: 38,
     gender: 'Female',
+    phone: '08012345678',
     fromDoctor: 'Dr. Umar Ibrahim',
     fromDepartment: 'General Medicine',
-    toDoctor: 'Dr. Ahmed Suleiman',
-    toDepartment: 'Cardiology',
-    reason: 'Suspected Heart Condition',
+    referralType: 'External',
+    hospitalReferredTo: 'Federal Medical Centre, Sokoto',
+    hospitalContact: '+234 803 456 7890',
+    doctorNote: 'Patient requires specialized cardiac intervention not available at our facility. ECG shows abnormal patterns requiring immediate specialist attention.',
+    reason: 'Suspected Cardiac Arrhythmia - Requires Specialist Cardiologist',
+    transportNotes: 'Ambulance required with cardiac monitoring equipment. Patient should be accompanied by nurse.',
     urgency: 'High',
     status: 'Pending',
     date: '2024-02-11',
@@ -60,11 +64,15 @@ const mockReferrals = [
     patientName: 'Suleiman Bello',
     age: 52,
     gender: 'Male',
+    phone: '08098765432',
     fromDoctor: 'Dr. Fatima Hassan',
     fromDepartment: 'Emergency',
-    toDoctor: 'Dr. Musa Ahmed',
-    toDepartment: 'Orthopedics',
-    reason: 'Multiple Fractures',
+    referralType: 'External',
+    hospitalReferredTo: 'Usmanu Danfodiyo University Teaching Hospital',
+    hospitalContact: '+234 806 123 4567',
+    doctorNote: 'Multiple compound fractures requiring orthopedic surgery. Patient has been stabilized but requires advanced surgical intervention.',
+    reason: 'Complex Orthopedic Surgery - Compound Fractures',
+    transportNotes: 'Critical transport needed. Patient should remain immobilized. Pain management ongoing.',
     urgency: 'Critical',
     status: 'Pending',
     date: '2024-02-11',
@@ -76,15 +84,39 @@ const mockReferrals = [
     patientName: 'Maryam Yusuf',
     age: 29,
     gender: 'Female',
+    phone: '08087654321',
     fromDoctor: 'Dr. Musa Ahmed',
     fromDepartment: 'Obstetrics',
-    toDoctor: 'Dr. Fatima Hassan',
-    toDepartment: 'Gynecology',
-    reason: 'Pregnancy Complications',
-    urgency: 'High',
+    referralType: 'External',
+    hospitalReferredTo: 'National Hospital, Abuja',
+    hospitalContact: '+234 809 876 5432',
+    doctorNote: 'High-risk pregnancy with complications. Requires NICU facilities for premature delivery management.',
+    reason: 'High-Risk Pregnancy - Premature Labor',
+    transportNotes: 'Immediate air ambulance recommended. Patient is 32 weeks pregnant with preeclampsia.',
+    urgency: 'Critical',
     status: 'Accepted',
     date: '2024-02-11',
     time: '09:30 AM',
+  },
+  {
+    id: 'REF-004',
+    patientId: 'GH-2024-078',
+    patientName: 'Ibrahim Musa',
+    age: 45,
+    gender: 'Male',
+    phone: '08076543210',
+    fromDoctor: 'Dr. Ahmed Suleiman',
+    fromDepartment: 'Internal Medicine',
+    referralType: 'External',
+    hospitalReferredTo: 'Aminu Kano Teaching Hospital',
+    hospitalContact: '+234 802 345 6789',
+    doctorNote: 'Patient showing signs of advanced liver disease. Requires hepatology specialist consultation and possible transplant evaluation.',
+    reason: 'Advanced Liver Disease - Specialist Hepatology Consultation',
+    transportNotes: 'Standard ambulance transport. Patient stable but requires monitoring.',
+    urgency: 'Medium',
+    status: 'Pending',
+    date: '2024-02-10',
+    time: '02:15 PM',
   },
 ];
 
@@ -97,6 +129,7 @@ export function NurseReferrals() {
   // Modal states
   const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState<typeof mockReferrals[0] | null>(null);
   const [acceptanceNotes, setAcceptanceNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
@@ -128,16 +161,25 @@ export function NurseReferrals() {
     setIsRejectModalOpen(true);
   };
 
+  const handleViewClick = (referral: typeof mockReferrals[0]) => {
+    setSelectedReferral(referral);
+    setIsViewModalOpen(true);
+  };
+
   const confirmAccept = () => {
     if (!selectedReferral) return;
     
     setReferrals((prev) =>
       prev.map((ref) =>
-        ref.id === selectedReferral.id ? { ...ref, status: 'Accepted' } : ref
+        ref.id === selectedReferral.id ? { 
+          ...ref, 
+          status: 'Accepted',
+          acceptedDate: new Date().toISOString(),
+        } : ref
       )
     );
     toast.success('Referral request accepted successfully', {
-      description: `${selectedReferral.patientName} has been referred to ${selectedReferral.toDepartment}.`,
+      description: `${selectedReferral.patientName} referral to ${selectedReferral.hospitalReferredTo} has been approved.`,
     });
     setIsAcceptModalOpen(false);
     setSelectedReferral(null);
@@ -200,7 +242,7 @@ export function NurseReferrals() {
       <div>
         <h1 className="text-3xl font-bold">Referral Requests</h1>
         <p className="text-muted-foreground mt-1">
-          Manage patient referral requests between departments
+          Manage external hospital referral requests
         </p>
       </div>
 
@@ -360,7 +402,7 @@ export function NurseReferrals() {
                   <TableHead>Referral ID</TableHead>
                   <TableHead>Patient</TableHead>
                   <TableHead>From</TableHead>
-                  <TableHead>To</TableHead>
+                  <TableHead>To Hospital</TableHead>
                   <TableHead>Reason</TableHead>
                   <TableHead>Urgency</TableHead>
                   <TableHead>Status</TableHead>
@@ -405,14 +447,13 @@ export function NurseReferrals() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                          <div>
-                            <p className="text-sm font-medium">{referral.toDoctor}</p>
-                            <p className="text-xs text-muted-foreground">{referral.toDepartment}</p>
-                          </div>
+                          <Building2 className="w-4 h-4 text-muted-foreground" />
+                          <p className="text-sm">{referral.hospitalReferredTo}</p>
                         </div>
                       </TableCell>
-                      <TableCell>{referral.reason}</TableCell>
+                      <TableCell className="max-w-[200px]">
+                        <p className="text-sm truncate">{referral.reason}</p>
+                      </TableCell>
                       <TableCell>{getUrgencyBadge(referral.urgency)}</TableCell>
                       <TableCell>{getStatusBadge(referral.status)}</TableCell>
                       <TableCell>
@@ -445,7 +486,7 @@ export function NurseReferrals() {
                               </Button>
                             </>
                           ) : (
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" onClick={() => handleViewClick(referral)}>
                               <Eye className="w-4 h-4 mr-1" />
                               View
                             </Button>
@@ -461,9 +502,9 @@ export function NurseReferrals() {
         </CardContent>
       </Card>
 
-      {/* Accept Referral Modal */}
+      {/* Accept Referral Modal - ENHANCED */}
       <Dialog open={isAcceptModalOpen} onOpenChange={setIsAcceptModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-3 rounded-full bg-green-100">
@@ -472,36 +513,94 @@ export function NurseReferrals() {
               <div>
                 <DialogTitle className="text-xl">Accept Referral Request</DialogTitle>
                 <DialogDescription className="text-sm mt-1">
-                  Confirm acceptance for {selectedReferral?.patientName}
+                  Review referral details for {selectedReferral?.patientName}
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
           
-          <div className="py-4 space-y-4">
-            {/* Referral Details */}
-            <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Referral ID:</span>
-                <span className="font-semibold">{selectedReferral?.id}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Patient:</span>
-                <span className="font-semibold">{selectedReferral?.patientName}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">From:</span>
-                <span className="font-semibold">{selectedReferral?.fromDepartment}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">To:</span>
-                <span className="font-semibold">{selectedReferral?.toDepartment}</span>
+          <div className="py-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+            {/* Patient Details */}
+            <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+              <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Patient Information
+              </h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Patient ID:</span>
+                  <span className="font-semibold">{selectedReferral?.patientId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Name:</span>
+                  <span className="font-semibold">{selectedReferral?.patientName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Age / Gender:</span>
+                  <span className="font-semibold">{selectedReferral?.age}y, {selectedReferral?.gender}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Phone:</span>
+                  <span className="font-semibold">{selectedReferral?.phone}</span>
+                </div>
               </div>
             </div>
-            
-            <p className="text-sm text-center text-muted-foreground">
-              Are you sure you want to accept this referral request?
-            </p>
+
+            {/* Doctor's Note */}
+            <div className="p-4 rounded-lg bg-purple-50 border border-purple-200 space-y-2">
+              <h3 className="text-sm font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                <Stethoscope className="w-4 h-4" />
+                Doctor's Note
+              </h3>
+              <p className="text-sm text-purple-900 leading-relaxed">{selectedReferral?.doctorNote}</p>
+              <div className="pt-2 border-t border-purple-200 flex justify-between text-xs">
+                <span className="text-muted-foreground">Referring Doctor:</span>
+                <span className="font-semibold text-purple-900">{selectedReferral?.fromDoctor}</span>
+              </div>
+            </div>
+
+            {/* Hospital Referred To */}
+            <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 space-y-2">
+              <h3 className="text-sm font-semibold text-emerald-900 mb-2 flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Referral Destination
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Hospital:</span>
+                  <span className="font-semibold text-emerald-900">{selectedReferral?.hospitalReferredTo}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Contact:</span>
+                  <div className="flex items-center gap-1 font-semibold text-emerald-900">
+                    <Phone className="w-3 h-3" />
+                    <span>{selectedReferral?.hospitalContact}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Reason for Referral */}
+            <div className="p-4 rounded-lg bg-orange-50 border border-orange-200 space-y-2">
+              <h3 className="text-sm font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                Reason for Referral
+              </h3>
+              <p className="text-sm text-orange-900 font-medium">{selectedReferral?.reason}</p>
+              <div className="flex items-center gap-2 pt-2 border-t border-orange-200">
+                <span className="text-xs text-muted-foreground">Urgency Level:</span>
+                {selectedReferral && getUrgencyBadge(selectedReferral.urgency)}
+              </div>
+            </div>
+
+            {/* Transport Notes */}
+            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 space-y-2">
+              <h3 className="text-sm font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                <Ambulance className="w-4 h-4" />
+                Transport Notes
+              </h3>
+              <p className="text-sm text-amber-900 leading-relaxed">{selectedReferral?.transportNotes}</p>
+            </div>
           </div>
 
           <DialogFooter className="gap-2">
@@ -598,6 +697,161 @@ export function NurseReferrals() {
             >
               <X className="w-4 h-4 mr-2" />
               Reject Referral
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Referral Modal - ENHANCED */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`p-3 rounded-full ${selectedReferral?.status === 'Accepted' ? 'bg-green-100' : 'bg-blue-100'}`}>
+                <Eye className={`w-6 h-6 ${selectedReferral?.status === 'Accepted' ? 'text-green-600' : 'text-blue-600'}`} />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">View Referral Request</DialogTitle>
+                <DialogDescription className="text-sm mt-1">
+                  Complete details for {selectedReferral?.patientName}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+            {/* Patient Details */}
+            <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+              <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Patient Information
+              </h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Patient ID:</span>
+                  <span className="font-semibold">{selectedReferral?.patientId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Name:</span>
+                  <span className="font-semibold">{selectedReferral?.patientName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Age / Gender:</span>
+                  <span className="font-semibold">{selectedReferral?.age}y, {selectedReferral?.gender}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Phone:</span>
+                  <span className="font-semibold">{selectedReferral?.phone}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Doctor's Note */}
+            <div className="p-4 rounded-lg bg-purple-50 border border-purple-200 space-y-2">
+              <h3 className="text-sm font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                <Stethoscope className="w-4 h-4" />
+                Doctor's Note
+              </h3>
+              <p className="text-sm text-purple-900 leading-relaxed">{selectedReferral?.doctorNote}</p>
+              <div className="pt-2 border-t border-purple-200 flex justify-between text-xs">
+                <span className="text-muted-foreground">Referring Doctor:</span>
+                <span className="font-semibold text-purple-900">{selectedReferral?.fromDoctor}</span>
+              </div>
+            </div>
+
+            {/* Hospital Referred To */}
+            <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 space-y-2">
+              <h3 className="text-sm font-semibold text-emerald-900 mb-2 flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Referral Destination
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Hospital:</span>
+                  <span className="font-semibold text-emerald-900">{selectedReferral?.hospitalReferredTo}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Contact:</span>
+                  <div className="flex items-center gap-1 font-semibold text-emerald-900">
+                    <Phone className="w-3 h-3" />
+                    <span>{selectedReferral?.hospitalContact}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Reason for Referral */}
+            <div className="p-4 rounded-lg bg-orange-50 border border-orange-200 space-y-2">
+              <h3 className="text-sm font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                Reason for Referral
+              </h3>
+              <p className="text-sm text-orange-900 font-medium">{selectedReferral?.reason}</p>
+              <div className="flex items-center gap-2 pt-2 border-t border-orange-200">
+                <span className="text-xs text-muted-foreground">Urgency Level:</span>
+                {selectedReferral && getUrgencyBadge(selectedReferral.urgency)}
+              </div>
+            </div>
+
+            {/* Transport Notes */}
+            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 space-y-2">
+              <h3 className="text-sm font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                <Ambulance className="w-4 h-4" />
+                Transport Notes
+              </h3>
+              <p className="text-sm text-amber-900 leading-relaxed">{selectedReferral?.transportNotes}</p>
+            </div>
+
+            {/* Approval Details Badge - Only if Accepted */}
+            {selectedReferral?.status === 'Accepted' && 'acceptedDate' in selectedReferral && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-lg bg-green-50 border-2 border-green-300 space-y-2"
+              >
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-600" />
+                  <h3 className="text-sm font-semibold text-green-900">Referral Approved</h3>
+                </div>
+                <p className="text-sm text-green-800">
+                  This referral has been approved and the patient can be transferred to {selectedReferral.hospitalReferredTo}.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-green-700 pt-2 border-t border-green-200">
+                  <Calendar className="w-3 h-3" />
+                  <span>
+                    Approved on {new Date((selectedReferral as any).acceptedDate).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Rejection Badge */}
+            {selectedReferral?.status === 'Rejected' && (
+              <div className="p-4 rounded-lg bg-red-50 border-2 border-red-300">
+                <div className="flex items-center gap-2">
+                  <X className="w-5 h-5 text-red-600" />
+                  <h3 className="text-sm font-semibold text-red-900">Referral Rejected</h3>
+                </div>
+                <p className="text-sm text-red-800 mt-2">
+                  This referral request has been rejected and cannot be processed.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsViewModalOpen(false)}
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

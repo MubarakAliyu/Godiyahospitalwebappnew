@@ -518,9 +518,8 @@ export function DoctorOPDPatientsPage() {
   };
 
   const handleStartConsultation = (patient: OPDPatient) => {
-    toast.success('Starting Consultation', {
-      description: `Starting consultation with ${patient.name}`,
-    });
+    // Navigate to consultation panel for this patient
+    navigate(`/emr/doctor/patients/${patient.id}/consultation`);
   };
 
   const handleResetFilters = () => {

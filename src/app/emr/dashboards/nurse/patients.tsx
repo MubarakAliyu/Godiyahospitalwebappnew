@@ -820,7 +820,7 @@ export function NursePatients() {
                           <TableCell>
                             <Badge variant="outline">{patient.gender}</Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
+                          <TableCell className="font-medium">
                             {formatDate(patient.dateOfBirth)}
                           </TableCell>
                           <TableCell className="text-sm">{patient.phoneNumber}</TableCell>

@@ -5,7 +5,7 @@ import {
   ArrowLeft, User, FileText, Pill, TestTube, Activity,
   Stethoscope, FileCheck, Droplets, Syringe, DollarSign,
   Save, Edit3, Calendar, Phone, MapPin, Bed, AlertTriangle,
-  Shield, UserCheck, Building, Clock
+  Shield, UserCheck, Building, Clock, Eye
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -15,17 +15,18 @@ import { Badge } from '@/app/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Separator } from '@/app/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { toast } from 'sonner';
 
 export function DoctorIPDPatientFilePage() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { patientId } = useParams();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Mock patient data
   const patientData = {
-    id: id || '1',
+    id: patientId || '1',
     fileNo: 'GH-PT-00011',
     name: 'Hauwa Bello',
     age: 52,
@@ -74,6 +75,156 @@ export function DoctorIPDPatientFilePage() {
     charges: '₦45,000 - Admission fee\n₦12,000 - Medication (daily)\n₦8,000 - Laboratory tests',
   });
 
+  // Mock historical vitals data captured by nurses over time
+  const vitalsHistory = [
+    {
+      id: '1',
+      date: '2/16/2026',
+      time: '08:00 AM',
+      bp: '138/85',
+      temp: '37.4',
+      pulse: '88',
+      respRate: '20',
+      oxygenSat: '94',
+      weight: '72',
+      height: '162',
+      bmi: '27.4',
+      recordedBy: 'Nurse Halima Usman',
+    },
+    {
+      id: '2',
+      date: '2/15/2026',
+      time: '08:00 PM',
+      bp: '140/88',
+      temp: '37.8',
+      pulse: '92',
+      respRate: '22',
+      oxygenSat: '92',
+      weight: '72',
+      height: '162',
+      bmi: '27.4',
+      recordedBy: 'Nurse Fatima Ibrahim',
+    },
+    {
+      id: '3',
+      date: '2/15/2026',
+      time: '08:00 AM',
+      bp: '142/90',
+      temp: '38.1',
+      pulse: '94',
+      respRate: '24',
+      oxygenSat: '91',
+      weight: '72',
+      height: '162',
+      bmi: '27.4',
+      recordedBy: 'Nurse Halima Usman',
+    },
+    {
+      id: '4',
+      date: '2/14/2026',
+      time: '08:00 PM',
+      bp: '145/92',
+      temp: '38.5',
+      pulse: '98',
+      respRate: '26',
+      oxygenSat: '89',
+      weight: '72',
+      height: '162',
+      bmi: '27.4',
+      recordedBy: 'Nurse Amina Bello',
+    },
+    {
+      id: '5',
+      date: '2/14/2026',
+      time: '08:00 AM',
+      bp: '148/95',
+      temp: '38.9',
+      pulse: '102',
+      respRate: '28',
+      oxygenSat: '88',
+      weight: '72',
+      height: '162',
+      bmi: '27.4',
+      recordedBy: 'Nurse Halima Usman',
+    },
+  ];
+
+  // Mock drug chart data - prescribed drugs administered over time
+  const drugChartHistory = [
+    {
+      id: '1',
+      date: '2/16/2026',
+      time: '08:00 AM',
+      drugName: 'Ceftriaxone',
+      dosage: '2g',
+      route: 'IV',
+      frequency: 'BD',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Halima Usman',
+      status: 'Administered',
+    },
+    {
+      id: '2',
+      date: '2/15/2026',
+      time: '08:00 PM',
+      drugName: 'Ceftriaxone',
+      dosage: '2g',
+      route: 'IV',
+      frequency: 'BD',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Fatima Ibrahim',
+      status: 'Administered',
+    },
+    {
+      id: '3',
+      date: '2/15/2026',
+      time: '08:00 AM',
+      drugName: 'Azithromycin',
+      dosage: '500mg',
+      route: 'Oral',
+      frequency: 'OD',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Halima Usman',
+      status: 'Administered',
+    },
+    {
+      id: '4',
+      date: '2/15/2026',
+      time: '02:00 PM',
+      drugName: 'Paracetamol',
+      dosage: '1g',
+      route: 'Oral',
+      frequency: 'PRN',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Halima Usman',
+      status: 'Administered',
+    },
+    {
+      id: '5',
+      date: '2/14/2026',
+      time: '08:00 PM',
+      drugName: 'Ceftriaxone',
+      dosage: '2g',
+      route: 'IV',
+      frequency: 'BD',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Amina Bello',
+      status: 'Administered',
+    },
+    {
+      id: '6',
+      date: '2/14/2026',
+      time: '08:00 AM',
+      drugName: 'Ceftriaxone',
+      dosage: '2g',
+      route: 'IV',
+      frequency: 'BD',
+      prescribedBy: 'Dr. Muhammad Bello',
+      administeredBy: 'Nurse Halima Usman',
+      status: 'Administered',
+    },
+  ];
+
   const handleSaveChanges = () => {
     setIsSaving(true);
     
@@ -109,6 +260,13 @@ export function DoctorIPDPatientFilePage() {
           </Button>
 
           <div className="flex gap-2">
+            <Button 
+              onClick={() => navigate(`/emr/doctor/patients/${patientId}/full-file`)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Full Patient File
+            </Button>
             {!isEditing ? (
               <Button onClick={() => setIsEditing(true)} variant="outline">
                 <Edit3 className="w-4 h-4 mr-2" />
@@ -623,22 +781,49 @@ export function DoctorIPDPatientFilePage() {
                         Drug Administration Chart
                       </CardTitle>
                       <CardDescription>
-                        Medication administration record
+                        Historical medication administration records - prescribed drugs administered over time
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {isEditing ? (
-                        <Textarea
-                          rows={8}
-                          value={editableData.drugChart}
-                          onChange={(e) => setEditableData({...editableData, drugChart: e.target.value})}
-                          placeholder="Enter drug chart details..."
-                        />
-                      ) : (
-                        <div className="bg-muted/30 rounded-lg p-4 border border-border">
-                          <p className="whitespace-pre-wrap">{editableData.drugChart}</p>
-                        </div>
-                      )}
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-orange-50">
+                              <TableHead>Date</TableHead>
+                              <TableHead>Time</TableHead>
+                              <TableHead>Drug Name</TableHead>
+                              <TableHead>Dosage</TableHead>
+                              <TableHead>Route</TableHead>
+                              <TableHead>Frequency</TableHead>
+                              <TableHead>Prescribed By</TableHead>
+                              <TableHead>Administered By</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {drugChartHistory.map((record) => (
+                              <TableRow key={record.id}>
+                                <TableCell className="font-medium">{record.date}</TableCell>
+                                <TableCell>{record.time}</TableCell>
+                                <TableCell className="font-semibold text-orange-700">{record.drugName}</TableCell>
+                                <TableCell>{record.dosage}</TableCell>
+                                <TableCell>{record.route}</TableCell>
+                                <TableCell>{record.frequency}</TableCell>
+                                <TableCell className="text-sm">{record.prescribedBy}</TableCell>
+                                <TableCell className="text-sm">{record.administeredBy}</TableCell>
+                                <TableCell>
+                                  <Badge className="bg-green-100 text-green-700 border-green-200">
+                                    {record.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      <div className="mt-4 text-sm text-muted-foreground">
+                        <p>Total administrations: {drugChartHistory.length}</p>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -652,89 +837,49 @@ export function DoctorIPDPatientFilePage() {
                         Vital Signs Monitoring
                       </CardTitle>
                       <CardDescription>
-                        Patient vital signs and observations
+                        Historical vital signs captured by nurses over time
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div>
-                          <Label htmlFor="bp">Blood Pressure (mmHg)</Label>
-                          <Input
-                            id="bp"
-                            value={editableData.vitals.bp}
-                            onChange={(e) => setEditableData({
-                              ...editableData,
-                              vitals: {...editableData.vitals, bp: e.target.value}
-                            })}
-                            disabled={!isEditing}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="temp">Temperature (°C)</Label>
-                          <Input
-                            id="temp"
-                            value={editableData.vitals.temp}
-                            onChange={(e) => setEditableData({
-                              ...editableData,
-                              vitals: {...editableData.vitals, temp: e.target.value}
-                            })}
-                            disabled={!isEditing}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="pulse">Pulse (bpm)</Label>
-                          <Input
-                            id="pulse"
-                            value={editableData.vitals.pulse}
-                            onChange={(e) => setEditableData({
-                              ...editableData,
-                              vitals: {...editableData.vitals, pulse: e.target.value}
-                            })}
-                            disabled={!isEditing}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="weight">Weight (kg)</Label>
-                          <Input
-                            id="weight"
-                            value={editableData.vitals.weight}
-                            onChange={(e) => setEditableData({
-                              ...editableData,
-                              vitals: {...editableData.vitals, weight: e.target.value}
-                            })}
-                            disabled={!isEditing}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="height">Height (cm)</Label>
-                          <Input
-                            id="height"
-                            value={editableData.vitals.height}
-                            onChange={(e) => setEditableData({
-                              ...editableData,
-                              vitals: {...editableData.vitals, height: e.target.value}
-                            })}
-                            disabled={!isEditing}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="oxygenSat">Oxygen Saturation (%)</Label>
-                          <Input
-                            id="oxygenSat"
-                            value={editableData.vitals.oxygenSat}
-                            onChange={(e) => setEditableData({
-                              ...editableData,
-                              vitals: {...editableData.vitals, oxygenSat: e.target.value}
-                            })}
-                            disabled={!isEditing}
-                          />
-                        </div>
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-red-50">
+                              <TableHead>Date</TableHead>
+                              <TableHead>Time</TableHead>
+                              <TableHead>BP (mmHg)</TableHead>
+                              <TableHead>Temp (°C)</TableHead>
+                              <TableHead>Pulse (bpm)</TableHead>
+                              <TableHead>Resp Rate</TableHead>
+                              <TableHead>O₂ Sat (%)</TableHead>
+                              <TableHead>Weight (kg)</TableHead>
+                              <TableHead>Height (cm)</TableHead>
+                              <TableHead>BMI</TableHead>
+                              <TableHead>Recorded By</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {vitalsHistory.map((vital) => (
+                              <TableRow key={vital.id}>
+                                <TableCell className="font-medium">{vital.date}</TableCell>
+                                <TableCell>{vital.time}</TableCell>
+                                <TableCell className="font-semibold">{vital.bp}</TableCell>
+                                <TableCell className="font-semibold">{vital.temp}</TableCell>
+                                <TableCell className="font-semibold">{vital.pulse}</TableCell>
+                                <TableCell>{vital.respRate}</TableCell>
+                                <TableCell>{vital.oxygenSat}</TableCell>
+                                <TableCell>{vital.weight}</TableCell>
+                                <TableCell>{vital.height}</TableCell>
+                                <TableCell>{vital.bmi}</TableCell>
+                                <TableCell className="text-sm">{vital.recordedBy}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       </div>
-                      {isEditing && (
-                        <Button onClick={handleVitalsSave} className="mt-4">
-                          Save Vitals
-                        </Button>
-                      )}
+                      <div className="mt-4 text-sm text-muted-foreground">
+                        <p>Total vital sign records: {vitalsHistory.length}</p>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>

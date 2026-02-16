@@ -67,14 +67,15 @@ import { CashierAdmissionChargesPage } from './emr/dashboards/cashier/admission-
 import { CashierReportsPage } from './emr/dashboards/cashier/reports';
 
 // Doctor Dashboard
-import { DoctorDashboardHome } from './emr/dashboards/doctor/home';
-import { DoctorSettings } from './emr/dashboards/doctor/settings';
 import { DoctorAppointmentsPage } from './emr/dashboards/doctor/appointments';
 import { DoctorOPDPatientsPage } from './emr/dashboards/doctor/patients-opd';
 import { DoctorIPDPatientsPage } from './emr/dashboards/doctor/patients-ipd';
 import { DoctorPatientFilePage } from './emr/dashboards/doctor/patient-file';
 import { DoctorIPDPatientFilePage } from './emr/dashboards/doctor/ipd-patient-file';
 import { DoctorConsultationPage } from './emr/dashboards/doctor/consultation';
+import { DoctorPatientFullFilePage } from './emr/dashboards/doctor/patient-full-file';
+import { DoctorDashboardHome } from './emr/dashboards/doctor/home';
+import { DoctorSettings } from './emr/dashboards/doctor/settings';
 
 // Laboratory Dashboard
 import { LaboratoryDashboardHome } from './emr/dashboards/laboratory/home';
@@ -109,6 +110,7 @@ import { NurseAdmissions } from './emr/dashboards/nurse/admissions';
 import { NurseReferrals } from './emr/dashboards/nurse/referrals';
 import { NurseSurgeries } from './emr/dashboards/nurse/surgeries';
 import { NursePatientFilePage } from './emr/dashboards/nurse/patient-file';
+import { NursePatientFullFilePage } from './emr/dashboards/nurse/patient-full-file';
 
 // Shared Notifications Page
 import { NotificationsPage as RoleNotificationsPage } from './emr/pages/notifications-page';
@@ -306,6 +308,7 @@ export default function App() {
               <Route path="patients/:patientId/file" element={<DoctorPatientFilePage />} />
               <Route path="patients/:patientId/consultation" element={<DoctorConsultationPage />} />
               <Route path="patients/:patientId/ipd-file" element={<DoctorIPDPatientFilePage />} />
+              <Route path="patients/:patientId/full-file" element={<DoctorPatientFullFilePage />} />
               <Route path="notifications" element={<RoleNotificationsPage />} />
             </Route>
 
@@ -353,6 +356,7 @@ export default function App() {
               <Route path="surgeries" element={<NurseSurgeries />} />
               <Route path="patients/:patientId" element={<NursePatientFilePage />} />
               <Route path="patients/:patientId/file" element={<NursePatientFilePage />} />
+              <Route path="patients/:patientId/full-file" element={<NursePatientFullFilePage />} />
               <Route path="notifications" element={<RoleNotificationsPage />} />
             </Route>
 
