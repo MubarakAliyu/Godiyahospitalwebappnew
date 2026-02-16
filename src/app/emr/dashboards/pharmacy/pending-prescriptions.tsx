@@ -31,6 +31,7 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { useEMRStore } from '@/app/emr/store/emr-store';
+import { usePharmacyStore } from '@/app/emr/store/pharmacy-store';
 import { toast } from 'sonner';
 import {
   Tooltip,
@@ -414,7 +415,7 @@ export function PendingPrescriptionsPanel() {
     );
   };
 
-  // Submit prescription
+  // Submit prescription - Send to cashier queue
   const handleSubmitPrescription = () => {
     if (!selectedPrescription) return;
 
@@ -443,18 +444,24 @@ export function PendingPrescriptionsPanel() {
     // Calculate total cost
     const totalCost = selectedDrugs.reduce((sum, sd) => sum + (sd.price * sd.quantityDispensed), 0);
 
-    // Move to Paid (simulate by removing from pending)
-    setPrescriptions(prev => prev.filter(p => p.id !== selectedPrescription.id));
+    // Update prescription status to Processing (sent to cashier queue)
+    setPrescriptions(prev =>
+      prev.map(p =>
+        p.id === selectedPrescription.id
+          ? { ...p, status: 'Processing' as const }
+          : p
+      )
+    );
 
-    toast.success('Prescription Fulfilled', {
-      description: `${selectedPrescription.prescriptionId} dispensed - Total: ₦${totalCost.toLocaleString()}`,
+    toast.success('Prescription Submitted', {
+      description: `${selectedPrescription.prescriptionId} sent to cashier queue - Total: ₦${totalCost.toLocaleString()}`,
     });
 
     // Add notifications
     addNotification({
       id: Date.now(),
-      title: 'Prescription Fulfilled',
-      message: `${selectedPrescription.prescriptionId} for ${selectedPrescription.patientName} - ₦${totalCost.toLocaleString()}`,
+      title: 'Prescription Submitted',
+      message: `${selectedPrescription.prescriptionId} for ${selectedPrescription.patientName} sent to cashier - ₦${totalCost.toLocaleString()}`,
       type: 'success',
       status: 'Unread',
       timestamp: new Date().toISOString(),
@@ -1031,7 +1038,7 @@ export function PendingPrescriptionsPanel() {
             </Button>
             <Button onClick={handleSubmitPrescription} className="bg-primary hover:bg-primary/90 px-8 h-11">
               <CheckCircle2 className="w-4 h-4 mr-2" />
-              Submit & Dispense
+              Submit
             </Button>
           </DialogFooter>
         </DialogContent>

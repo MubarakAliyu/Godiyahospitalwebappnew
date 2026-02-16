@@ -32,6 +32,8 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { useEMRStore } from '@/app/emr/store/emr-store';
+import { usePharmacyStore } from '@/app/emr/store/pharmacy-store';
+import { addAuditLog } from '@/app/emr/store/audit-store';
 import { toast } from 'sonner';
 import {
   Tooltip,
@@ -375,6 +377,7 @@ function KPICard({ title, value, icon: Icon, trend, trendValue, color = 'primary
 
 export function PaidPrescriptionsPanel() {
   const { addNotification } = useEMRStore();
+  const { updatePrescriptionStatus } = usePharmacyStore();
 
   // State
   const [prescriptions, setPrescriptions] = useState<PaidPrescription[]>(mockPaidPrescriptions);
@@ -660,6 +663,57 @@ export function PaidPrescriptionsPanel() {
         }
       }, 500);
     }
+  };
+
+  // Print & Dispense - Print invoice, then update status to Dispensed
+  const handlePrintAndDispense = (prescription: PaidPrescription) => {
+    // First, generate and print the invoice
+    handlePrintInvoice(prescription);
+
+    // Then update the dispatch status to "Collected" (Dispensed)
+    setPrescriptions(prev =>
+      prev.map(p =>
+        p.id === prescription.id
+          ? { ...p, dispatchStatus: 'Collected' as const }
+          : p
+      )
+    );
+
+    // Show success toast for dispensing
+    toast.success('Prescription Dispensed', {
+      description: `${prescription.invoiceId} for ${prescription.patientName} has been dispensed successfully.`,
+    });
+
+    // Add notification for dispensing
+    addNotification({
+      id: Date.now() + 100,
+      title: 'Prescription Dispensed',
+      message: `${prescription.invoiceId} dispensed to ${prescription.patientName}`,
+      type: 'success',
+      status: 'Unread',
+      timestamp: new Date().toISOString(),
+      priority: 'High',
+    });
+
+    // Add audit log for dispensing
+    addAuditLog({
+      action: 'Prescription Dispensed',
+      module: 'Pharmacy',
+      patientId: prescription.id,
+      patientName: prescription.patientName,
+      metadata: {
+        invoiceId: prescription.invoiceId,
+        prescriptionId: prescription.prescriptionId,
+        amount: prescription.amount,
+        dispensedBy: prescription.dispensedBy,
+      },
+    });
+
+    // Close modal after dispensing
+    setTimeout(() => {
+      setViewModalOpen(false);
+      setSelectedPrescription(null);
+    }, 1500);
   };
 
   // Export as CSV
@@ -1253,11 +1307,11 @@ export function PaidPrescriptionsPanel() {
             </Button>
             {selectedPrescription && (
               <Button 
-                onClick={() => handlePrintInvoice(selectedPrescription)}
+                onClick={() => handlePrintAndDispense(selectedPrescription)}
                 className="bg-primary hover:bg-primary/90"
               >
                 <Printer className="w-4 h-4 mr-2" />
-                Print Invoice
+                Print & Dispense
               </Button>
             )}
           </DialogFooter>
